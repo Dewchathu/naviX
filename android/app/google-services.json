@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765587323725",
+    "project_id": "navix-dew",
+    "storage_bucket": "navix-dew.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765587323725:android:d0a804842c817a31609504",
+        "android_client_info": {
+          "package_name": "com.dew.navix"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBo-Ny2tgOvOnISOy9rrOsDXdHhx16rw7U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
