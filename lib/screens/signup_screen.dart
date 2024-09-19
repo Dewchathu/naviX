@@ -2,16 +2,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:navix/screens/home.dart';
-import 'package:navix/screens/signup_screen.dart';
+import 'package:navix/screens/login_screen.dart';
 
 import '../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
 import '../widgets/custom_password_form_field.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class SignupScreen extends StatelessWidget {
+  const SignupScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +26,12 @@ class LoginScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: MediaQuery.of(context).size.height / 6),
-                const SizedBox(height: 20.0),
+                SizedBox(height: MediaQuery.of(context).size.height / 8),
                 SizedBox(
                   width: 100,
                   child: Image.asset('assets/images/logo_blue.png'),
                 ),
-                const LoginForm(),
+                const SignupForm(),
               ],
             ),
           ),
@@ -43,16 +41,18 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class LoginForm extends StatefulWidget {
-  const LoginForm({Key? key}) : super(key: key);
+class SignupForm extends StatefulWidget {
+  const SignupForm({Key? key}) : super(key: key);
 
   @override
-  _LoginFormState createState() => _LoginFormState();
+  _SignupFormState createState() => _SignupFormState();
 }
 
-class _LoginFormState extends State<LoginForm> {
+class _SignupFormState extends State<SignupForm> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _conPasswordController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   bool isValidateMode = false;
@@ -100,7 +100,16 @@ class _LoginFormState extends State<LoginForm> {
         key: _formKey,
         child: Column(
           children: [
-            const SizedBox(height: 10.0),
+            CustomFormField(
+              controller: _nameController,
+              hintText: 'Name',
+              validator: MultiValidator([
+                RequiredValidator(
+                  errorText: "Please enter name",
+                ),
+              ]).call,
+            ),
+            const SizedBox(height: 20.0),
             CustomFormField(
               controller: _emailController,
               hintText: 'Email',
@@ -125,48 +134,40 @@ class _LoginFormState extends State<LoginForm> {
                 return null;
               },
             ),
-            const SizedBox(height: 10.0),
-
-            // Forget Password link
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    text: "Forgot Password",
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    recognizer: TapGestureRecognizer()..onTap = () {},
-                  ),
-                ),
-              ],
+            const SizedBox(height: 20.0),
+            CustomPasswordFormField(
+              controller: _conPasswordController,
+              hintText: 'Conform Password',
+              showSuffixIcon: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please re-enter your password';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 20.0),
 
             CustomButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const Home_Screen(),
-                  ),
-                );
-                // if (_formKey.currentState!.validate()) {
-                //   _login();
-                //   //EasyLoading.show();
-                // } else if (_formKey.currentState!.validate()) {
-                //   Fluttertoast.showToast(
-                //       msg: "Logging Error",
-                //       toastLength: Toast.LENGTH_SHORT,
-                //       gravity: ToastGravity.BOTTOM,
-                //       timeInSecForIosWeb: 1,
-                //       backgroundColor: Colors.grey,
-                //       textColor: Colors.white,
-                //       fontSize: 16.0);
-                // }
+                if (_formKey.currentState!.validate() &&
+                    _isLegalMember == true) {
+                  // Process login data
+                  _login();
+                  //EasyLoading.show();
+                } else if (_formKey.currentState!.validate() &&
+                    _isLegalMember == false) {
+                  Fluttertoast.showToast(
+                      msg: "This is Center Short Toast",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.CENTER,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0);
+                }
               },
-              text: 'Log In',
+              text: 'Sign Up',
             ),
             const SizedBox(height: 20),
 
@@ -174,14 +175,14 @@ class _LoginFormState extends State<LoginForm> {
               text: TextSpan(
                 children: [
                   const TextSpan(
-                    text: "Don't have an account",
+                    text: "Already  Have an Account?",
                     style: TextStyle(
                       color: Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextSpan(
-                    text: "  Sign Up",
+                    text: "  Login",
                     style: TextStyle(
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
@@ -189,7 +190,7 @@ class _LoginFormState extends State<LoginForm> {
                     recognizer: TapGestureRecognizer()..onTap = () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
+                          builder: (context) => const LoginScreen(),
                         ),
                       );
                     },
@@ -224,7 +225,7 @@ class _LoginFormState extends State<LoginForm> {
                     width: 30,
                     height: 30,
                     child: Image.asset(
-                      'assets/images/google.png'
+                        'assets/images/google.png'
                     ),
                   ),
                 ),
