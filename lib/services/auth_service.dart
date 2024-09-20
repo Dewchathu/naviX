@@ -1,48 +1,60 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:navix/actions/move_to_next_sceen.dart';
+import 'package:navix/screens/home.dart';
 
-import 'firestore_service.dart';
+import '../widgets/info_messages.dart'; // Assuming you have this widget
+import 'firestore_service.dart'; // Firestore service to handle Firestore operations
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
 
-  getCurrentUser() async {
-    return await _auth.currentUser;
+  // Get current user
+  Future<User?> getCurrentUser() async {
+    return _auth.currentUser;
   }
 
-  getCurrentUserId() {
+  // Get current user ID
+  String? getCurrentUserId() {
     try {
-      return _auth.currentUser!.uid;
+      return _auth.currentUser?.uid;
     } catch (e) {
-      //showToast("Oops! something wrong.");
+      showToast("Oops! Something went wrong.");
+      return null;
     }
   }
 
-  Future<User?> createUserWithEmailAndPassword(
-      String email, String password) async {
+  // Create a new user with email and password
+  Future<User?> createUserWithEmailAndPassword(String email,
+      String password) async {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       return cred.user;
     } catch (e) {
-      debugPrint("Something went wrong");
+      showToast("Failed to create account.");
+      debugPrint("Error: $e");
     }
     return null;
   }
 
-  Future<User?> loginUserWithEmailAndPassword(
-      String email, String password) async {
+  // Login with email and password
+  Future<User?> loginUserWithEmailAndPassword(String email,
+      String password) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
       return cred.user;
     } catch (e) {
-      debugPrint("Something went wrong");
+      showToast("Login failed.");
+      debugPrint("Error: $e");
     }
     return null;
   }
 
+  // Google Sign-In method
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -52,6 +64,7 @@ class AuthService {
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
+
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken,
@@ -62,7 +75,6 @@ class AuthService {
         final User? userDetails = userCredential.user;
 
         if (userDetails != null) {
-          // User signed in successfully
           Map<String, dynamic> userInfoMap = {
             "email": userDetails.email,
             "name": userDetails.displayName,
@@ -75,44 +87,45 @@ class AuthService {
           // Add user details to Firestore
           await FirestoreService().addUser(userDetails.uid, userInfoMap);
 
-          // Navigator.pushNamed(context, InitScreen.routeName);
+          // Navigate to home screen or initial screen
+          moveToNextScreen(context, const HomeScreen());
         } else {
-          // Handle case where userDetails is null (authentication failed)
-          debugPrint('User authentication failed');
+          showToast('User authentication failed.');
         }
       } else {
-        // Handle case where googleSignInAccount is null (sign-in canceled)
-        debugPrint('Google sign-in canceled');
+        showToast('Google sign-in was canceled.');
       }
     } catch (e) {
-      // Handle other exceptions that might occur during sign-in
+      showToast('Error signing in with Google.');
       debugPrint('Error signing in with Google: $e');
-      // Show error message or handle error gracefully
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Sign-In Error'),
-            content: const Text('Failed to sign in with Google. Please try again.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
     }
   }
 
+  // Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      showToast('Password reset email sent.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        showToast("User not found!");
+      } else {
+        showToast("Oops! Something went wrong.");
+      }
+    } catch (e) {
+      showToast("Oops! Something went wrong.");
+      debugPrint('Error: $e');
+    }
+  }
+
+  // Sign out method
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      showToast('Signed out successfully.');
     } catch (e) {
-      debugPrint("Something went wrong");
+      showToast('Error signing out.');
+      debugPrint("Error: $e");
     }
   }
 }

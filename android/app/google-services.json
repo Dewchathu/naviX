@@ -12,7 +12,20 @@
           "package_name": "com.dew.navix"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "765587323725-3h4305q1m6ksbmspg79g2aj28jjddhjv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dew.navix",
+            "certificate_hash": "58dc7ca1523359e4d6cd29d2dabaf4c06ee5fb82"
+          }
+        },
+        {
+          "client_id": "765587323725-06bso64aqdn7pl90j16h6id2otoo5rei.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBo-Ny2tgOvOnISOy9rrOsDXdHhx16rw7U"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "765587323725-06bso64aqdn7pl90j16h6id2otoo5rei.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

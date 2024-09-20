@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:navix/screens/profile_screen.dart';
 import 'package:navix/widgets/home_scroll.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-class Home_Screen extends StatefulWidget {
-  const Home_Screen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<Home_Screen> createState() => _Home_ScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _Home_ScreenState extends State<Home_Screen> {
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
+      initialIndex: 1, // Set this to 1 to open "Home" tab by default (0-based index)
       child: Scaffold(
         appBar: AppBar(
           title: const Text('NaviX'),
+            automaticallyImplyLeading: false,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
@@ -25,8 +28,8 @@ class _Home_ScreenState extends State<Home_Screen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfileScreen()), // Navigate to ProfileScreen
+                      builder: (context) => const ProfileScreen(),
+                    ), // Navigate to ProfileScreen
                   );
                 },
                 child: const CircleAvatar(
@@ -36,14 +39,14 @@ class _Home_ScreenState extends State<Home_Screen> {
             ),
           ],
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: <Widget>[
-            Center(
-              child: Text("It's cloudy here"),
+            const Center(
+              child: Text("It's cloudy here"), // Info tab content
             ),
-            HomeScroll(),
-            Center(
-              child: Text("It's sunny here"),
+            const HomeScroll(), // Home tab content
+            SfCalendar(
+              view: CalendarView.month, // Calendar tab content
             ),
           ],
         ),
@@ -59,7 +62,7 @@ class _Home_ScreenState extends State<Home_Screen> {
             ),
             Tab(
               icon: Icon(Icons.calendar_month_rounded),
-              text: 'Calender',
+              text: 'Calendar',
             ),
           ],
         ),

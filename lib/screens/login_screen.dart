@@ -2,13 +2,18 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:navix/screens/forgot_password_screen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/screens/signup_screen.dart';
 
+import '../actions/move_to_next_sceen.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
+import '../services/shared_preference_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
 import '../widgets/custom_password_form_field.dart';
+import '../widgets/info_messages.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -57,7 +62,6 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   bool isValidateMode = false;
   bool isLoading = false;
-  bool _isLegalMember = false;
 
   @override
   bool _isLoading = false;
@@ -86,10 +90,60 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   // Function to handle login button press
+  // Function to handle login button press
   _login() async {
     setState(() {
       isLoading = true;
     });
+
+    try {
+      var user = await AuthService().loginUserWithEmailAndPassword(_emailController.text, _passwordController.text);
+
+      if (user != null) {
+        FirestoreService().getCurrentUserInfo().then((snapshot) async {
+
+          if(!(snapshot?.exists ?? false)){
+            setState(() {
+              isLoading = false;
+            });
+           // EasyLoading.dismiss();
+            showToast("No Account Founded");
+          }
+
+          String userType =  snapshot!.data()?["userType"];
+
+
+          if(userType == "consumer"){
+            await SharedPreferenceService.setBool("isLogged", true);
+            setState(() {
+              isLoading = false;
+            });
+           // EasyLoading.dismiss();
+            moveToNextScreen(context, const HomeScreen());
+          }
+          else{
+            setState(() {
+              isLoading = false;
+            });
+           // EasyLoading.dismiss();
+            showToast("Incorrect email. Please try again.");
+          }
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+       // EasyLoading.dismiss();
+        showToast("Incorrect email or password. Please try again.");
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+     // EasyLoading.dismiss();
+      showToast("Login failed: $e");
+      // print("Login failed: $e");
+    }
   }
 
   @override
@@ -125,7 +179,7 @@ class _LoginFormState extends State<LoginForm> {
                 return null;
               },
             ),
-            const SizedBox(height: 10.0),
+            const SizedBox(height: 20.0),
 
             // Forget Password link
             Row(
@@ -138,33 +192,28 @@ class _LoginFormState extends State<LoginForm> {
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
-                    recognizer: TapGestureRecognizer()..onTap = () {},
+                    recognizer: TapGestureRecognizer()..onTap = () {
+                      moveToNextScreen(context, const ForgetPasswordScreen());
+                    },
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 15.0),
 
             CustomButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const Home_Screen(),
-                  ),
-                );
-                // if (_formKey.currentState!.validate()) {
-                //   _login();
-                //   //EasyLoading.show();
-                // } else if (_formKey.currentState!.validate()) {
-                //   Fluttertoast.showToast(
-                //       msg: "Logging Error",
-                //       toastLength: Toast.LENGTH_SHORT,
-                //       gravity: ToastGravity.BOTTOM,
-                //       timeInSecForIosWeb: 1,
-                //       backgroundColor: Colors.grey,
-                //       textColor: Colors.white,
-                //       fontSize: 16.0);
-                // }
+                // Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (context) => const HomeScreen(),
+                //   ),
+                // );
+                if (_formKey.currentState!.validate()) {
+                  _login();
+                  //EasyLoading.show();
+                } else if (_formKey.currentState!.validate()) {
+                  Fluttertoast.showToast(msg: "Logging Error");
+                }
               },
               text: 'Log In',
             ),

@@ -11,6 +11,7 @@ class FirestoreService{
     try{
       return FirebaseFirestore.instance.collection('User').doc(await getCurrentUserId()).get();
     } catch(e){
+
       //showToast('Request Denied');
       return null;
     }
