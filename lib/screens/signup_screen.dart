@@ -1,13 +1,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:navix/screens/login_screen.dart';
 
+import '../actions/move_to_next_sceen.dart';
 import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
+import '../services/shared_preference_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
 import '../widgets/custom_password_form_field.dart';
+import '../widgets/info_messages.dart';
+import 'home.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -57,7 +61,6 @@ class _SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   bool isValidateMode = false;
   bool isLoading = false;
-  bool _isLegalMember = false;
 
   @override
   bool _isLoading = false;
@@ -71,26 +74,43 @@ class _SignupFormState extends State<SignupForm> {
     super.dispose();
   }
 
-  validate() {
-    setState(() {
-      isValidateMode = true;
-      isLoading = true;
-    });
-    if (_formKey.currentState!.validate()) {
-      _login();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   // Function to handle login button press
   _login() async {
     setState(() {
       isLoading = true;
     });
-  }
+    try{
+      await AuthService().createUserWithEmailAndPassword(_emailController.text, _passwordController.text).then((user) async{
+        if(user != null) {
+          await FirestoreService().addUser(user.uid, {
+            "name": _nameController.text,
+            "email": _emailController.text,
+            "academicYear": null,
+            "graduationYear": null,
+            "preferences": [],
+            "skills": [],
+            "profileUrl": ""
+
+          }).then((value){
+            setState((){
+              isLoading = true;
+            });
+            moveToNextScreen(context, const LoginScreen());
+            showToast('Successfully Registered!');
+          });
+        }
+      });
+    }
+
+    catch(e){
+      setState(() {
+        isLoading = false;
+      });
+      // EasyLoading.dismiss();
+      showToast("Login failed: $e");
+    }
+    }
+
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +162,10 @@ class _SignupFormState extends State<SignupForm> {
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please re-enter your password';
+                } else if (value != _passwordController.text) {
+                  return 'Password does not match';
                 }
+
                 return null;
               },
             ),
@@ -150,23 +173,15 @@ class _SignupFormState extends State<SignupForm> {
 
             CustomButton(
               onPressed: () {
-                if (_formKey.currentState!.validate() &&
-                    _isLegalMember == true) {
+                if (_formKey.currentState!.validate()) {
                   // Process login data
                   _login();
                   //EasyLoading.show();
-                } else if (_formKey.currentState!.validate() &&
-                    _isLegalMember == false) {
-                  Fluttertoast.showToast(
-                      msg: "This is Center Short Toast",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.CENTER,
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.red,
-                      textColor: Colors.white,
-                      fontSize: 16.0);
+                } else if (_formKey.currentState!.validate()){
+                  showToast("This is Center Short Toast");
                 }
               },
+              isLoading: isLoading,
               text: 'Sign Up',
             ),
             const SizedBox(height: 20),
@@ -203,7 +218,8 @@ class _SignupFormState extends State<SignupForm> {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                AuthService().signInWithGoogle(context).then((success) {
+                AuthService().signInWithGoogle(context).then((success) async {
+                  await SharedPreferenceService.setBool("isLogged", true);
                 });
               },
               child: Container(

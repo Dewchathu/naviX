@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 
 class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text;
   final Color? buttonColor;
+  final bool isLoading;
 
   const CustomButton({
     required this.onPressed,
     required this.text,
     this.buttonColor,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: buttonColor ?? Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
@@ -27,7 +30,17 @@ class CustomButton extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      child: Text(text),
+      child: isLoading
+          ? const SizedBox(
+              height: 30,
+              width: 30,
+              child: LoadingIndicator(
+                indicatorType: Indicator.circleStrokeSpin,
+                colors: [Colors.white],
+                strokeWidth: 2,
+              ),
+            )
+          : Text(text),
     );
   }
 }

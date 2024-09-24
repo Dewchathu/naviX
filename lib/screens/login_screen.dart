@@ -5,6 +5,7 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:navix/screens/forgot_password_screen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/screens/signup_screen.dart';
+import 'package:navix/widgets/loading_indicator.dart';
 
 import '../actions/move_to_next_sceen.dart';
 import '../services/auth_service.dart';
@@ -75,21 +76,6 @@ class _LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
-  validate() {
-    setState(() {
-      isValidateMode = true;
-      isLoading = true;
-    });
-    if (_formKey.currentState!.validate()) {
-      _login();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  // Function to handle login button press
   // Function to handle login button press
   _login() async {
     setState(() {
@@ -106,43 +92,29 @@ class _LoginFormState extends State<LoginForm> {
             setState(() {
               isLoading = false;
             });
-           // EasyLoading.dismiss();
+           loadingIndicator.dismiss();
             showToast("No Account Founded");
           }
-
-          String userType =  snapshot!.data()?["userType"];
-
-
-          if(userType == "consumer"){
-            await SharedPreferenceService.setBool("isLogged", true);
-            setState(() {
-              isLoading = false;
-            });
-           // EasyLoading.dismiss();
-            moveToNextScreen(context, const HomeScreen());
-          }
-          else{
-            setState(() {
-              isLoading = false;
-            });
-           // EasyLoading.dismiss();
-            showToast("Incorrect email. Please try again.");
-          }
+          await SharedPreferenceService.setBool("isLogged", true);
+          setState(() {
+            isLoading = false;
+          });
+          loadingIndicator.dismiss();
+          moveToNextScreen(context, const HomeScreen());
         });
       } else {
         setState(() {
           isLoading = false;
         });
-       // EasyLoading.dismiss();
+        loadingIndicator.dismiss();
         showToast("Incorrect email or password. Please try again.");
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-     // EasyLoading.dismiss();
+      loadingIndicator.dismiss();
       showToast("Login failed: $e");
-      // print("Login failed: $e");
     }
   }
 
@@ -210,11 +182,12 @@ class _LoginFormState extends State<LoginForm> {
                 // );
                 if (_formKey.currentState!.validate()) {
                   _login();
-                  //EasyLoading.show();
+                  loadingIndicator.show(context);
                 } else if (_formKey.currentState!.validate()) {
-                  Fluttertoast.showToast(msg: "Logging Error");
+                  showToast("Logging Error");
                 }
               },
+              isLoading: isLoading,
               text: 'Log In',
             ),
             const SizedBox(height: 20),
@@ -251,7 +224,10 @@ class _LoginFormState extends State<LoginForm> {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {
-                AuthService().signInWithGoogle(context).then((success) {
+                loadingIndicator.show(context);
+                AuthService().signInWithGoogle(context).then((success) async {
+                  await SharedPreferenceService.setBool("isLogged", true);
+                  loadingIndicator.dismiss();
                 });
               },
               child: Container(
@@ -263,12 +239,12 @@ class _LoginFormState extends State<LoginForm> {
                       color: Colors.grey.withOpacity(0.3),
                       spreadRadius: 3,
                       blurRadius: 5,
-                      offset: const Offset(3, 3), // changes position of shadow
+                      offset: const Offset(3, 3),
                     ),
                   ],
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: SizedBox(
                     width: 30,
                     height: 30,

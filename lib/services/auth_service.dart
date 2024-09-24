@@ -79,9 +79,11 @@ class AuthService {
             "email": userDetails.email,
             "name": userDetails.displayName,
             "id": userDetails.uid,
-            "phone": userDetails.phoneNumber,
-            "address": '',
             "profileUrl": userDetails.photoURL,
+            "academicYear": null,
+            "graduationYear": null,
+            "preferences": [],
+            "skills": [],
           };
 
           // Add user details to Firestore

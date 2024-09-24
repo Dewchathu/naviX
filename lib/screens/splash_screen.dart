@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:navix/actions/move_to_next_sceen.dart';
+import 'package:navix/screens/home.dart';
 import 'package:navix/screens/login_screen.dart';
+
+import '../services/firestore_service.dart';
+import '../services/shared_preference_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,12 +18,16 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 5), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LoginScreen(),
-        ),
-      );
+      SharedPreferenceService.getBool("isLogged").then((isLogged) {
+        if(isLogged == true){
+          FirestoreService().getCurrentUserInfo().then((snapshot){
+            moveToNextScreen(context, const HomeScreen());
+          });
+        }
+        else{
+          moveToNextScreen(context, const LoginScreen());
+        }
+      });
     });
   }
   @override
