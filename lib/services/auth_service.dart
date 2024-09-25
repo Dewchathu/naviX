@@ -92,7 +92,9 @@ class AuthService {
               "preferences": [],
               "skills": [],
               "profileUrl": userDetails.photoURL ?? "",
-              "courseDetails": [], // Initialize as an empty list
+              "courseDetails": [],
+              "reqSkills":[],
+              "jobList": [],
             };
 
             // Add user details to Firestore for the first time

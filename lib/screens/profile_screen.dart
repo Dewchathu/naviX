@@ -40,28 +40,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserInfo() async {
     try {
-      await FirestoreService().getCurrentUserInfo().then((snapshot) async {
+      Map<String, dynamic>? userInfo = await FirestoreService().getCurrentUserInfo();
+      if (userInfo != null) {
         setState(() {
-          profilePictureUrl = snapshot?.data()?["profileUrl"] ??
-              "assets/images/profile_image.png";
-          Provider.of<ProfileProvider>(context, listen: false)
-              .updateProfilePicture(profilePictureUrl);
+          profilePictureUrl = userInfo["profileUrl"] ?? "assets/images/profile_image.png";
+          Provider.of<ProfileProvider>(context, listen: false).updateProfilePicture(profilePictureUrl);
 
-          _nameController.text = snapshot?.data()?["name"] ?? "";
-          _emailController.text = snapshot?.data()?["email"] ?? "";
-          _academicYearController.text =
-              snapshot?.data()?["academicYear"] ?? "";
-          _graduationYearController.text =
-              snapshot?.data()?["graduationYear"] ?? "";
-          _skillsController.text =
-              (snapshot?.data()?["skills"] as List<dynamic>?)
-                  ?.join(", ") ?? "";
+          _nameController.text = userInfo["name"] ?? "";
+          _emailController.text = userInfo["email"] ?? "";
+          _academicYearController.text = userInfo["academicYear"] ?? "";
+          _graduationYearController.text = userInfo["graduationYear"] ?? "";
+          _skillsController.text = (userInfo["skills"] as List<dynamic>?)?.join(", ") ?? "";
+          _preferencesController.text = (userInfo["preferences"] as List<dynamic>?)?.join(", ") ?? "";
 
-          _preferencesController.text =
-              (snapshot?.data()?["preferences"] as List<dynamic>?)
-                  ?.join(", ") ?? "";
         });
-      });
+      }
     } catch (e) {
       print("Error fetching user info: $e");
     }

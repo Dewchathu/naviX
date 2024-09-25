@@ -15,12 +15,20 @@ class FirestoreService {
     }
   }
 
-  // Method to get current user information
-  Future<DocumentSnapshot<Map<String, dynamic>>?> getCurrentUserInfo() async {
+// Method to get current user information along with course details
+  Future<Map<String, dynamic>?> getCurrentUserInfo() async {
     try {
       String? userId = await getCurrentUserId();
       if (userId != null) {
-        return await _firestore.collection('User').doc(userId).get();
+        DocumentSnapshot<Map<String, dynamic>> snapshot = await _firestore.collection('User').doc(userId).get();
+
+        if (snapshot.exists) {
+          // Return all user information along with course details
+          return snapshot.data();
+        } else {
+          showToast('User document not found');
+          return null;
+        }
       } else {
         showToast('User ID not found');
         return null;
@@ -30,6 +38,7 @@ class FirestoreService {
       return null;
     }
   }
+
 
   // Method to update user information
   Future<void> updateUserInfo(Map<String, dynamic> updatedInfoJson) async {

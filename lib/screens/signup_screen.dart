@@ -91,6 +91,8 @@ class _SignupFormState extends State<SignupForm> {
             "skills": [],
             "profileUrl": "",
             "courseDetails": [],
+            "reqSkills":[],
+            "jobList": [],
 
           }).then((value){
             setState((){

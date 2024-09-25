@@ -1,13 +1,65 @@
 import 'package:flutter/material.dart';
+import '../models/user_info.dart';
 
 class IntroScroll extends StatefulWidget {
-  const IntroScroll({super.key});
+  final UserInfo? user;
+  const IntroScroll({super.key, required this.user});
 
   @override
   State<IntroScroll> createState() => _IntroScrollState();
 }
 
 class _IntroScrollState extends State<IntroScroll> {
+  String skills = "";
+  String preferences = "";
+  String jobList = "";
+  String reqSkills = "";
+
+  @override
+  void initState() {
+    super.initState();
+    skills = (widget.user?.skills as List<dynamic>?)?.join(", ") ?? "";
+    preferences = (widget.user?.preferences as List<dynamic>?)?.join(", ") ?? "";
+    jobList = (widget.user?.jobList as List<dynamic>?)?.join(", ") ?? "";
+    reqSkills = (widget.user?.reqSkills as List<dynamic>?)?.join(", ") ?? "";
+  }
+
+  List<TableRow> _buildCourseRows() {
+    // Check if courseDetails is available
+    if (widget.user?.courseDetails == null || widget.user!.courseDetails.isEmpty) {
+      return [
+        const TableRow(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('No Course Details Available'),
+            ),
+          ],
+        ),
+      ];
+    }
+
+    // Generate TableRow for each course
+    return widget.user!.courseDetails.map<TableRow>((course) {
+      return TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(course['semester']),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(course['courseName']),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(course['courseCode']),
+          ),
+        ],
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -18,28 +70,28 @@ class _IntroScrollState extends State<IntroScroll> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text('Java, Flutter, Dart'),
+          Text(skills),
           const SizedBox(height: 10),
           const Text(
             'Preferences',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text('Coding, Designing'),
+          Text(preferences),
           const SizedBox(height: 10),
           const Text(
             'Job List',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text('Developer, UI/UX Designer'),
+          Text(jobList),
           const SizedBox(height: 10),
           const Text(
             'Required Skills',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text('Coding, Designing'),
+          Text(reqSkills),
           const SizedBox(height: 10),
           const Text(
             'Elective Subjects',
@@ -50,15 +102,12 @@ class _IntroScrollState extends State<IntroScroll> {
             border: TableBorder.all(),
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             columnWidths: const {
-              0: FlexColumnWidth(
-                  2), // Adjust the width of the first column (Semester)
-              1: FlexColumnWidth(
-                  3), // Adjust the width of the second column (Course Name)
-              2: FlexColumnWidth(
-                  2), // Adjust the width of the third column (Course Code)
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(3),
+              2: FlexColumnWidth(2),
             },
-            children: const <TableRow>[
-              TableRow(
+            children: [
+              const TableRow(
                 children: <Widget>[
                   Padding(
                     padding: EdgeInsets.all(8.0),
@@ -83,22 +132,7 @@ class _IntroScrollState extends State<IntroScroll> {
                   ),
                 ],
               ),
-              TableRow(
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('1st Year 2nd Semester'),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('Calculus and Differential Equations'),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text('PST11211'),
-                  ),
-                ],
-              ),
+              ..._buildCourseRows(),
             ],
           ),
           const SizedBox(height: 10),

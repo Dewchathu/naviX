@@ -86,22 +86,26 @@ class _LoginFormState extends State<LoginForm> {
       var user = await AuthService().loginUserWithEmailAndPassword(_emailController.text, _passwordController.text);
 
       if (user != null) {
-        FirestoreService().getCurrentUserInfo().then((snapshot) async {
+        // Fetch current user info
+        var userInfo = await FirestoreService().getCurrentUserInfo();
 
-          if(!(snapshot?.exists ?? false)){
-            setState(() {
-              isLoading = false;
-            });
-           loadingIndicator.dismiss();
-            showToast("No Account Founded");
-          }
-          await SharedPreferenceService.setBool("isLogged", true);
+        // Check if userInfo is null
+        if (userInfo == null) {
           setState(() {
             isLoading = false;
           });
           loadingIndicator.dismiss();
-          moveToNextScreen(context, const HomeScreen());
+          showToast("No account found.");
+          return; // Exit the method early if no account is found
+        }
+
+        // If userInfo exists, continue
+        await SharedPreferenceService.setBool("isLogged", true);
+        setState(() {
+          isLoading = false;
         });
+        loadingIndicator.dismiss();
+        moveToNextScreen(context, const HomeScreen());
       } else {
         setState(() {
           isLoading = false;
@@ -117,6 +121,7 @@ class _LoginFormState extends State<LoginForm> {
       showToast("Login failed: $e");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

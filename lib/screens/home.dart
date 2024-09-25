@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/profile_screen.dart';
+import 'package:navix/widgets/calender.dart';
 import 'package:navix/widgets/home_scroll.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 
+import '../models/user_info.dart';
 import '../providers/profile_provider.dart';
 import '../services/firestore_service.dart';
 import '../widgets/info_scroll.dart';
@@ -17,8 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String profilePictureUrl = "assets/images/profile_image.png";
-  String userName = "UserName";
+  String profilePictureUrl = "";
+  UserInfo? user;
 
   @override
   void initState() {
@@ -26,19 +27,46 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserInfo();
   }
 
-
   Future<void> _loadUserInfo() async {
     try {
-      var snapshot = await FirestoreService().getCurrentUserInfo();
-      setState(() {
-        profilePictureUrl = snapshot?.data()?["profileUrl"] ?? "assets/images/profile_image.png";
-        Provider.of<ProfileProvider>(context, listen: false)
-            .updateProfilePicture(profilePictureUrl);
-        userName = snapshot?.data()?["name"] ?? "Username";
-      });
+      Map<String, dynamic>? userInfo =
+          await FirestoreService().getCurrentUserInfo();
+      if (userInfo != null) {
+        setState(() {
+          profilePictureUrl =
+              userInfo["profileUrl"] ?? "assets/images/profile_image.png";
+          Provider.of<ProfileProvider>(context, listen: false)
+              .updateProfilePicture(profilePictureUrl);
+          user = UserInfo(
+            name: userInfo["name"] ?? "",
+            email: userInfo["email"] ?? "",
+            academicYear: userInfo["academicYear"] ?? "",
+            graduationYear: userInfo["graduationYear"] ?? "",
+            skills: (userInfo["skills"] as List<dynamic>?)
+                    ?.map((skill) => skill.toString())
+                    .toList() ??
+                [],
+            preferences: (userInfo["preferences"] as List<dynamic>?)
+                    ?.map((preference) => preference.toString())
+                    .toList() ??
+                [],
+            courseDetails: List<Map<String, dynamic>>.from(
+                userInfo["courseDetails"] ?? []),
+            profileUrl:
+                userInfo["profileUrl"] ?? "assets/images/profile_image.png",
+            jobList: (userInfo["jobList"] as List<dynamic>?)
+                    ?.map((skill) => skill.toString())
+                    .toList() ??
+                [],
+            reqSkills: (userInfo["reqSkills"] as List<dynamic>?)
+                    ?.map((skill) => skill.toString())
+                    .toList() ??
+                [],
+          );
+        });
+      }
     } catch (e) {
-      // Handle error fetching user info
-      print("Error fetching user info: $e");
+      debugPrint("Error fetching user info: $e");
     }
   }
 
@@ -46,14 +74,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
-      initialIndex: 1, // Set this to 1 to open "Home" tab by default (0-based index)
+      initialIndex:
+          1, // Set this to 1 to open "Home" tab by default (0-based index)
       child: Scaffold(
         appBar: AppBar(
           title: SizedBox(
             height: 35,
-              child: Image.asset('assets/images/logo_appbar.png'),
+            child: Image.asset('assets/images/logo_appbar.png'),
           ),
-            automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
@@ -65,10 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, profileProvider, child) {
                     return CircleAvatar(
                       radius: 25,
-                      backgroundImage: profileProvider.profilePictureUrl.isNotEmpty &&
-                          Uri.tryParse(profileProvider.profilePictureUrl)?.hasAbsolutePath == true
+                      backgroundImage: profileProvider
+                                  .profilePictureUrl.isNotEmpty &&
+                              Uri.tryParse(profileProvider.profilePictureUrl)
+                                      ?.hasAbsolutePath ==
+                                  true
                           ? NetworkImage(profileProvider.profilePictureUrl)
-                          : const AssetImage('assets/images/profile_image.png') as ImageProvider,
+                          : const AssetImage('assets/images/profile_image.png')
+                              as ImageProvider,
                     );
                   },
                 ),
@@ -78,11 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: TabBarView(
           children: <Widget>[
-            const IntroScroll(),
+            IntroScroll(user: user),
             const HomeScroll(), // Home tab content
-            SfCalendar(
-              view: CalendarView.month, // Calendar tab content
-            ),
+            const Calender(),
           ],
         ),
         bottomNavigationBar: const TabBar(
