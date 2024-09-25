@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -58,8 +59,7 @@ class AuthService {
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleSignInAccount =
-      await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
@@ -71,26 +71,42 @@ class AuthService {
         );
 
         final UserCredential userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
+        await _auth.signInWithCredential(credential);
         final User? userDetails = userCredential.user;
 
         if (userDetails != null) {
-          Map<String, dynamic> userInfoMap = {
-            "email": userDetails.email,
-            "name": userDetails.displayName,
-            "id": userDetails.uid,
-            "profileUrl": userDetails.photoURL,
-            "academicYear": null,
-            "graduationYear": null,
-            "preferences": [],
-            "skills": [],
-          };
+          // Check if the user already exists in Firestore
+          DocumentSnapshot userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userDetails.uid)
+              .get();
 
-          // Add user details to Firestore
-          await FirestoreService().addUser(userDetails.uid, userInfoMap);
+          // If the user document doesn't exist, it's the first time signing in
+          if (!userDoc.exists) {
+            // Initialize fields with default values
+            Map<String, dynamic> userInfoMap = {
+              "name": userDetails.displayName ?? "",
+              "email": userDetails.email ?? "",
+              "academicYear": null,
+              "graduationYear": null,
+              "preferences": [],
+              "skills": [],
+              "profileUrl": userDetails.photoURL ?? "",
+              "courseDetails": [], // Initialize as an empty list
+            };
 
-          // Navigate to home screen or initial screen
-          moveToNextScreen(context, const HomeScreen());
+            // Add user details to Firestore for the first time
+            await FirestoreService().addUser(userDetails.uid, userInfoMap);
+          } else {
+            // Do not overwrite existing fields, user already exists
+            debugPrint('User already exists, not overwriting existing data.');
+          }
+
+          // Navigate to home screen or next screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
         } else {
           showToast('User authentication failed.');
         }

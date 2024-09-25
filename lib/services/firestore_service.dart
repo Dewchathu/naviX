@@ -2,37 +2,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/info_messages.dart';
 import 'auth_service.dart';
 
-class FirestoreService{
+class FirestoreService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future addUser(String userId, Map<String, dynamic> userInfoMap){
-    return FirebaseFirestore.instance.collection("User").doc(userId).set(userInfoMap);
+  // Method to add a user to Firestore
+  Future<void> addUser(String userId, Map<String, dynamic> userInfoMap) async {
+    try {
+      await _firestore.collection("User").doc(userId).set(userInfoMap);
+      showToast('User added successfully');
+    } catch (e) {
+      showToast('Error adding user: $e');
+    }
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>?> getCurrentUserInfo() async{
-    try{
-      return FirebaseFirestore.instance.collection('User').doc(await getCurrentUserId()).get();
-    } catch(e){
-      showToast('Request Denied');
+  // Method to get current user information
+  Future<DocumentSnapshot<Map<String, dynamic>>?> getCurrentUserInfo() async {
+    try {
+      String? userId = await getCurrentUserId();
+      if (userId != null) {
+        return await _firestore.collection('User').doc(userId).get();
+      } else {
+        showToast('User ID not found');
+        return null;
+      }
+    } catch (e) {
+      showToast('Request Denied: $e');
       return null;
     }
   }
 
+  // Method to update user information
   Future<void> updateUserInfo(Map<String, dynamic> updatedInfoJson) async {
     try {
-      String userId = await getCurrentUserId(); // Get the user ID first
-      await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userId)
-          .set(updatedInfoJson, SetOptions(merge: true)); // Await the set() call
-      showToast('Profile updated successfully'); // Optional success message
+      String? userId = await getCurrentUserId();
+      if (userId != null) {
+        await _firestore.collection('User').doc(userId).set(updatedInfoJson, SetOptions(merge: true));
+        showToast('Profile updated successfully');
+      } else {
+        showToast('User ID not found');
+      }
     } catch (e) {
-      showToast('Request Denied: $e'); // Display error message with reason
+      showToast('Request Denied: $e');
     }
   }
 
-
-  getCurrentUserId() async{
+  // Method to get the current user ID
+  Future<String?> getCurrentUserId() async {
     return await AuthService().getCurrentUserId();
   }
-
 }

@@ -7,6 +7,7 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../providers/profile_provider.dart';
 import '../services/firestore_service.dart';
+import '../widgets/info_scroll.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,7 +49,10 @@ class _HomeScreenState extends State<HomeScreen> {
       initialIndex: 1, // Set this to 1 to open "Home" tab by default (0-based index)
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('NaviX'),
+          title: SizedBox(
+            height: 35,
+              child: Image.asset('assets/images/logo_appbar.png'),
+          ),
             automaticallyImplyLeading: false,
           actions: [
             Padding(
@@ -74,9 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: TabBarView(
           children: <Widget>[
-            const Center(
-              child: Text("It's cloudy here"), // Info tab content
-            ),
+            const IntroScroll(),
             const HomeScroll(), // Home tab content
             SfCalendar(
               view: CalendarView.month, // Calendar tab content
