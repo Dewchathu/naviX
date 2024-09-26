@@ -25,7 +25,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _academicYearController = TextEditingController();
-  final TextEditingController _graduationYearController = TextEditingController();
+  final TextEditingController _graduationYearController =
+      TextEditingController();
   final TextEditingController _skillsController = TextEditingController();
   final TextEditingController _preferencesController = TextEditingController();
   bool isTextFieldEnabled = false;
@@ -40,19 +41,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserInfo() async {
     try {
-      Map<String, dynamic>? userInfo = await FirestoreService().getCurrentUserInfo();
+      Map<String, dynamic>? userInfo =
+          await FirestoreService().getCurrentUserInfo();
       if (userInfo != null) {
         setState(() {
-          profilePictureUrl = userInfo["profileUrl"] ?? "assets/images/profile_image.png";
-          Provider.of<ProfileProvider>(context, listen: false).updateProfilePicture(profilePictureUrl);
+          profilePictureUrl =
+              userInfo["profileUrl"] ?? "assets/images/profile_image.png";
+          Provider.of<ProfileProvider>(context, listen: false)
+              .updateProfilePicture(profilePictureUrl);
 
           _nameController.text = userInfo["name"] ?? "";
           _emailController.text = userInfo["email"] ?? "";
           _academicYearController.text = userInfo["academicYear"] ?? "";
           _graduationYearController.text = userInfo["graduationYear"] ?? "";
-          _skillsController.text = (userInfo["skills"] as List<dynamic>?)?.join(", ") ?? "";
-          _preferencesController.text = (userInfo["preferences"] as List<dynamic>?)?.join(", ") ?? "";
-
+          _skillsController.text =
+              (userInfo["skills"] as List<dynamic>?)?.join(", ") ?? "";
+          _preferencesController.text =
+              (userInfo["preferences"] as List<dynamic>?)?.join(", ") ?? "";
         });
       }
     } catch (e) {
@@ -67,17 +72,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         "email": _emailController.text,
         "academicYear": _academicYearController.text,
         "graduationYear": _graduationYearController.text,
-        "skills": _skillsController.text.split(',')
+        "skills":
+            _skillsController.text.split(',').map((e) => e.trim()).toList(),
+        "preferences": _preferencesController.text
+            .split(',')
             .map((e) => e.trim())
             .toList(),
-        "preferences": _preferencesController.text.split(',').map((e) =>
-            e.trim()).toList(),
       });
     } catch (e) {
       print("Error saving user info: $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -116,14 +121,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, profileProvider, child) {
                         return CircleAvatar(
                           radius: 30,
-                          backgroundImage: profileProvider.profilePictureUrl.isNotEmpty &&
-                              Uri.tryParse(profileProvider.profilePictureUrl)?.hasAbsolutePath == true
+                          backgroundImage: profileProvider
+                                      .profilePictureUrl.isNotEmpty &&
+                                  Uri.tryParse(
+                                              profileProvider.profilePictureUrl)
+                                          ?.hasAbsolutePath ==
+                                      true
                               ? NetworkImage(profileProvider.profilePictureUrl)
-                              : const AssetImage('assets/images/profile_image.png') as ImageProvider,
+                              : const AssetImage(
+                                      'assets/images/profile_image.png')
+                                  as ImageProvider,
                         );
                       },
                     ),
-
                     Positioned(
                       bottom: 0,
                       right: -25,
@@ -135,8 +145,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fillColor: const Color(0xFFF5F6F9),
                         padding: const EdgeInsets.all(15.0),
                         shape: const CircleBorder(),
-                        child: const Icon(
-                            Icons.camera_alt_outlined, color: Colors.blue),
+                        child: const Icon(Icons.camera_alt_outlined,
+                            color: Colors.blue),
                       ),
                     ),
                   ],
@@ -148,9 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 5),
             _buildEditableField("Email", _emailController, isTextFieldEnabled),
             const SizedBox(height: 5),
-            _buildEditableField(
-                "Current Academic Year", _academicYearController,
-                isTextFieldEnabled),
+            _buildEditableField("Current Academic Year",
+                _academicYearController, isTextFieldEnabled),
             const SizedBox(height: 5),
             _buildEditableField("Graduation Year", _graduationYearController,
                 isTextFieldEnabled),
@@ -192,7 +201,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               text: 'Sign Out',
             ),
-
           ],
         ),
       ),
@@ -207,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         var downloadUrl = await StorageService().uploadFile(
           File(pickedFile.path),
           "Profile Pictures",
-          path_delegate.basename(File(pickedFile.path).path ?? ""),
+          path_delegate.basename(File(pickedFile.path).path),
         );
 
         await FirestoreService().updateUserInfo({"profileUrl": downloadUrl});
@@ -220,12 +228,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Hide loading indicator, etc.
       }
     } catch (e) {
-      print("Error selecting/updating image: $e");
+      debugPrint("Error selecting/updating image: $e");
     }
   }
 
-  Widget _buildEditableField(String label, TextEditingController controller,
-      bool isTextFieldEnabled) {
+  Widget _buildEditableField(
+      String label, TextEditingController controller, bool isTextFieldEnabled) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: TextFormField(
@@ -237,5 +245,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
 }

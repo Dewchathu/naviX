@@ -11,7 +11,6 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
 import '../widgets/custom_password_form_field.dart';
 import '../widgets/info_messages.dart';
-import 'home.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -63,10 +62,9 @@ class _SignupFormState extends State<SignupForm> {
   bool isLoading = false;
 
   @override
-  bool _isLoading = false;
+  //bool _isLoading = false;
 
   @override
-
   void dispose() {
     // Dispose of controllers to avoid memory leaks
     _emailController.dispose();
@@ -79,9 +77,12 @@ class _SignupFormState extends State<SignupForm> {
     setState(() {
       isLoading = true;
     });
-    try{
-      await AuthService().createUserWithEmailAndPassword(_emailController.text, _passwordController.text).then((user) async{
-        if(user != null) {
+    try {
+      await AuthService()
+          .createUserWithEmailAndPassword(
+              _emailController.text, _passwordController.text)
+          .then((user) async {
+        if (user != null) {
           await FirestoreService().addUser(user.uid, {
             "name": _nameController.text,
             "email": _emailController.text,
@@ -91,11 +92,10 @@ class _SignupFormState extends State<SignupForm> {
             "skills": [],
             "profileUrl": "",
             "courseDetails": [],
-            "reqSkills":[],
+            "reqSkills": [],
             "jobList": [],
-
-          }).then((value){
-            setState((){
+          }).then((value) {
+            setState(() {
               isLoading = true;
             });
             moveToNextScreen(context, const LoginScreen());
@@ -103,17 +103,14 @@ class _SignupFormState extends State<SignupForm> {
           });
         }
       });
-    }
-
-    catch(e){
+    } catch (e) {
       setState(() {
         isLoading = false;
       });
       // EasyLoading.dismiss();
       showToast("Login failed: $e");
     }
-    }
-
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,14 +170,13 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             const SizedBox(height: 20.0),
-
             CustomButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   // Process login data
                   _login();
                   //EasyLoading.show();
-                } else if (_formKey.currentState!.validate()){
+                } else if (_formKey.currentState!.validate()) {
                   showToast("This is Center Short Toast");
                 }
               },
@@ -188,7 +184,6 @@ class _SignupFormState extends State<SignupForm> {
               text: 'Sign Up',
             ),
             const SizedBox(height: 20),
-
             RichText(
               text: TextSpan(
                 children: [
@@ -205,13 +200,14 @@ class _SignupFormState extends State<SignupForm> {
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
-                    recognizer: TapGestureRecognizer()..onTap = () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
                   ),
                 ],
               ),
@@ -243,9 +239,7 @@ class _SignupFormState extends State<SignupForm> {
                   child: SizedBox(
                     width: 30,
                     height: 30,
-                    child: Image.asset(
-                        'assets/images/google.png'
-                    ),
+                    child: Image.asset('assets/images/google.png'),
                   ),
                 ),
               ),

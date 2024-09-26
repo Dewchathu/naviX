@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 
 import '../widgets/info_messages.dart'; // Assuming you have this widget
@@ -28,8 +26,8 @@ class AuthService {
   }
 
   // Create a new user with email and password
-  Future<User?> createUserWithEmailAndPassword(String email,
-      String password) async {
+  Future<User?> createUserWithEmailAndPassword(
+      String email, String password) async {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
@@ -42,8 +40,8 @@ class AuthService {
   }
 
   // Login with email and password
-  Future<User?> loginUserWithEmailAndPassword(String email,
-      String password) async {
+  Future<User?> loginUserWithEmailAndPassword(
+      String email, String password) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -59,11 +57,12 @@ class AuthService {
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+            await googleSignInAccount.authentication;
 
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
@@ -71,7 +70,7 @@ class AuthService {
         );
 
         final UserCredential userCredential =
-        await _auth.signInWithCredential(credential);
+            await _auth.signInWithCredential(credential);
         final User? userDetails = userCredential.user;
 
         if (userDetails != null) {
@@ -93,7 +92,7 @@ class AuthService {
               "skills": [],
               "profileUrl": userDetails.photoURL ?? "",
               "courseDetails": [],
-              "reqSkills":[],
+              "reqSkills": [],
               "jobList": [],
             };
 

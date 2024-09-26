@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:navix/screens/forgot_password_screen.dart';
 import 'package:navix/screens/home.dart';
@@ -65,10 +64,9 @@ class _LoginFormState extends State<LoginForm> {
   bool isLoading = false;
 
   @override
-  bool _isLoading = false;
+  // bool _isLoading = false;
 
   @override
-
   void dispose() {
     // Dispose of controllers to avoid memory leaks
     _emailController.dispose();
@@ -83,7 +81,8 @@ class _LoginFormState extends State<LoginForm> {
     });
 
     try {
-      var user = await AuthService().loginUserWithEmailAndPassword(_emailController.text, _passwordController.text);
+      var user = await AuthService().loginUserWithEmailAndPassword(
+          _emailController.text, _passwordController.text);
 
       if (user != null) {
         // Fetch current user info
@@ -121,7 +120,6 @@ class _LoginFormState extends State<LoginForm> {
       showToast("Login failed: $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -169,9 +167,10 @@ class _LoginFormState extends State<LoginForm> {
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
-                    recognizer: TapGestureRecognizer()..onTap = () {
-                      moveToNextScreen(context, const ForgetPasswordScreen());
-                    },
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        moveToNextScreen(context, const ForgetPasswordScreen());
+                      },
                   ),
                 ),
               ],
@@ -213,13 +212,14 @@ class _LoginFormState extends State<LoginForm> {
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
-                    recognizer: TapGestureRecognizer()..onTap = () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
-                    },
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SignupScreen(),
+                          ),
+                        );
+                      },
                   ),
                 ],
               ),
@@ -253,9 +253,7 @@ class _LoginFormState extends State<LoginForm> {
                   child: SizedBox(
                     width: 30,
                     height: 30,
-                    child: Image.asset(
-                      'assets/images/google.png'
-                    ),
+                    child: Image.asset('assets/images/google.png'),
                   ),
                 ),
               ),
