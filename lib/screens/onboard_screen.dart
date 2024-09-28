@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
-import 'package:navix/screens/home.dart';
+import 'package:navix/screens/setup_screen.dart';
 import 'package:navix/widgets/custom_button.dart';
 
 class OnBoardScreen extends StatefulWidget {
@@ -48,7 +48,7 @@ Let's begin by getting to know more about your interests, academic goals, and as
               CustomButton(
                 text: 'Get Started',
                 onPressed: () {
-                  moveToNextScreen(context, const HomeScreen());
+                  moveToNextScreen(context, const SetupScreen());
                 },
               ),
             ],

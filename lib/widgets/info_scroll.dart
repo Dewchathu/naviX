@@ -117,7 +117,7 @@ class _IntroScrollState extends State<IntroScroll> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 6,
@@ -140,7 +140,7 @@ class _IntroScrollState extends State<IntroScroll> {
   Widget _buildTable() {
     return Table(
       border: TableBorder.all(
-          color: Colors.black12), // Light border for modern look
+          color: Colors.black12), 
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       columnWidths: const {
         0: FlexColumnWidth(2),
