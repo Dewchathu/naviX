@@ -86,14 +86,6 @@ class _IntroScrollState extends State<IntroScroll> {
             _buildSectionTitle('Elective Subjects'),
             _buildTable(),
             const SizedBox(height: 30),
-            Center(
-              child: CustomButton(
-                text: 'Get Started',
-                onPressed: () {
-                  moveToNextScreen(context, const OnBoardScreen());
-                },
-              ),
-            ),
           ],
         ),
       ),

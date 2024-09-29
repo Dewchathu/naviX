@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
+import 'package:navix/services/firestore_service.dart';
 import 'package:navix/widgets/custom_button.dart';
 import 'package:navix/widgets/custom_form_field.dart';
 
@@ -178,7 +179,21 @@ class _SetupScreenState extends State<SetupScreen> {
                 //   moveToNextScreen(context, const HomeScreen());
                 // } : null,
                 () {
-              moveToNextScreen(context, const HomeScreen());
+              FirestoreService().updateUserInfo({
+                "academicYear": _academicYearController.text,
+                "graduationYear": _graduationYearController.text,
+                "skills": _skillsController.text
+                    .split(',')
+                    .map((e) => e.trim())
+                    .toList(),
+                "preferences": _preferencesController.text
+                    .split(',')
+                    .map((e) => e.trim())
+                    .toList(),
+                "jobList": selectedJobs
+              }).then((_) {
+                moveToNextScreen(context, const HomeScreen());
+              });
             },
             text: 'Submit',
           ),
@@ -188,34 +203,33 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   // Function to build selectable job cards
-Widget _buildSelectableCard(String job, bool isSelected) {
-  return IntrinsicWidth(
-    child: Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue[100] : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            spreadRadius: 2,
+  Widget _buildSelectableCard(String job, bool isSelected) {
+    return IntrinsicWidth(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[100] : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            job,
+            style: TextStyle(
+              fontSize: 16,
+              color: isSelected ? Colors.blue : Colors.black87,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          job,
-          style: TextStyle(
-            fontSize: 16,
-            color: isSelected ? Colors.blue : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-          textAlign: TextAlign.center,
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:navix/screens/login_screen.dart';
+import 'package:navix/screens/onboard_screen.dart';
 
 import '../actions/move_to_next_sceen.dart';
 import '../services/auth_service.dart';
@@ -98,7 +99,7 @@ class _SignupFormState extends State<SignupForm> {
             setState(() {
               isLoading = true;
             });
-            moveToNextScreen(context, const LoginScreen());
+            moveToNextScreen(context, const OnBoardScreen());
             showToast('Successfully Registered!');
           });
         }
