@@ -36,7 +36,8 @@ class _IntroScrollState extends State<IntroScroll> {
           children: [
             Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text('No Course Details Available'),
+              child: Text('No Course Details Available',
+                  textAlign: TextAlign.center),
             ),
           ],
         ),
@@ -44,19 +45,24 @@ class _IntroScrollState extends State<IntroScroll> {
     }
 
     return widget.user!.courseDetails.map<TableRow>((course) {
+      // Ensure default values are provided if any field is missing
+      String semester = course['semester'] ?? 'N/A';
+      String courseName = course['courseName'] ?? 'N/A';
+      String courseCode = course['courseCode'] ?? 'N/A';
+
       return TableRow(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(course['semester']),
+            child: Text(semester),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(course['courseName']),
+            child: Text(courseName),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(course['courseCode']),
+            child: Text(courseCode),
           ),
         ],
       );
@@ -86,6 +92,12 @@ class _IntroScrollState extends State<IntroScroll> {
             _buildSectionTitle('Elective Subjects'),
             _buildTable(),
             const SizedBox(height: 30),
+            CustomButton(
+              text: 'Get Started',
+              onPressed: () {
+                moveToNextScreen(context, const OnBoardScreen());
+              },
+            ),
           ],
         ),
       ),
@@ -131,8 +143,7 @@ class _IntroScrollState extends State<IntroScroll> {
 
   Widget _buildTable() {
     return Table(
-      border: TableBorder.all(
-          color: Colors.black12), 
+      border: TableBorder.all(color: Colors.black12),
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       columnWidths: const {
         0: FlexColumnWidth(2),

@@ -139,7 +139,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       right: -25,
                       child: RawMaterialButton(
                         onPressed: () {
+                          setState(() {
                           showImageSourceDialog(context, _selectImage);
+                          });
                         },
                         elevation: 2.0,
                         fillColor: const Color(0xFFF5F6F9),

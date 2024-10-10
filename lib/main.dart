@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/providers/profile_provider.dart';
 import 'package:navix/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
+  //Gemini.init(apiKey: const String.fromEnvironment('api_key'), enableDebugging: true);
+  Gemini.init(apiKey: "AIzaSyB--UuH2p4f99jnHI2Fx51iTCIN9YNacmY");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MultiProvider(providers: [

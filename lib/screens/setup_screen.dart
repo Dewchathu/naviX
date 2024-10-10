@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/services/firestore_service.dart';
 import 'package:navix/widgets/custom_button.dart';
 import 'package:navix/widgets/custom_form_field.dart';
+import 'package:navix/widgets/loading_indicator.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -18,15 +20,9 @@ class _SetupScreenState extends State<SetupScreen> {
       TextEditingController();
   final TextEditingController _preferencesController = TextEditingController();
   final TextEditingController _skillsController = TextEditingController();
+  final gemini = Gemini.instance;
   bool isSubmit = false;
-  List<String> jobList = [
-    "Front end Developer",
-    "UI/UX Designer",
-    "Data Analyst",
-    "Software Engineer",
-    "Product Manager",
-    "Digital Marketing Specialist",
-  ];
+  List<String> jobList = [];
   List<String> selectedJobs = [];
 
   @override
@@ -110,7 +106,37 @@ class _SetupScreenState extends State<SetupScreen> {
           child: CustomButton(
             onPressed: () {
               setState(() {
-                isSubmit = true;
+                isSubmit = false;
+              });
+
+              loadingIndicator.show(context);
+              gemini
+                  .text(
+                      "${_preferencesController.text} are my preferences then give me some job title list relates to computer science as a list type.")
+                  .then((value) {
+                if (value?.output != null) {
+                  // Split by newline and remove the leading numbers using regex
+                  if (value?.output != null) {
+                    jobList = value!.output!
+                        .split('\n') // Split by newlines
+                        .map((job) => job
+                            .replaceAll('*', '')
+                            .trim()) // Remove * and trim spaces
+                        .where((job) =>
+                            job.isNotEmpty &&
+                            !job.contains(
+                                ':')) // Remove empty entries and titles with colon
+                        .toList();
+                  }
+                }
+                setState(() {
+                  isSubmit = true;
+                });
+                loadingIndicator.dismiss();
+                print(jobList);
+              }).catchError((e) {
+                loadingIndicator.dismiss();
+                print(e);
               });
             },
             text: 'Submit',

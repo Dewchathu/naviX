@@ -92,7 +92,18 @@ class _SignupFormState extends State<SignupForm> {
             "preferences": [],
             "skills": [],
             "profileUrl": "",
-            "courseDetails": [],
+            "courseDetails": [
+              {
+                "courseCode": "PHY11211",
+                "courseName": "Physics",
+                "semester": "1st Year 2nd Semester"
+              },
+              {
+                "courseCode": "CHE11210",
+                "courseName": "Chemistry",
+                "semester": "1st Year 2nd Semester"
+              }
+            ],
             "reqSkills": [],
             "jobList": [],
           }).then((value) {

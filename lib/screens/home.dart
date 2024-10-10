@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/profile_screen.dart';
 import 'package:navix/widgets/calender.dart';
@@ -20,11 +21,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String profilePictureUrl = "";
   UserInfo? user;
+  final gemini = Gemini.instance;
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
+    gemini.streamGenerateContent('''
+I am a Flutter developer with skills in Dart, and I have a keen interest in coding, designing, and mobile app development. My goal is to pursue a career as a mobile app developer, UX designer, or front-end developer. Please provide me with a detailed 3-month study plan as a map, including:
+
+Focus Areas: Outline the main areas of study I should focus on for each week.
+Topics/Technologies: Specify the technologies or subjects I should learn each day.
+
+''').listen((value) {
+      print(value.output);
+    }).onError((e) {
+      print(e);
+    });
   }
 
   Future<void> _loadUserInfo() async {
