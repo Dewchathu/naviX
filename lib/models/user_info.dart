@@ -9,6 +9,7 @@ class UserInfo {
   final List<String> reqSkills;
   final List<Map<String, dynamic>> courseDetails;
   final String profileUrl;
+  final List<String> dailyVideoList;
 
   UserInfo({
     required this.name,
@@ -21,5 +22,6 @@ class UserInfo {
     required this.reqSkills,
     required this.courseDetails,
     required this.profileUrl,
+    required this.dailyVideoList,
   });
 }

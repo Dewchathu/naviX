@@ -75,6 +75,7 @@ Topics/Technologies: Specify the technologies or subjects I should learn each da
                     ?.map((skill) => skill.toString())
                     .toList() ??
                 [],
+            dailyVideoList: List<String>.from(userInfo["dailyVideoList"] ?? []),
           );
         });
       }
@@ -125,7 +126,7 @@ Topics/Technologies: Specify the technologies or subjects I should learn each da
         body: TabBarView(
           children: <Widget>[
             IntroScroll(user: user),
-            const HomeScroll(), // Home tab content
+            user != null? HomeScroll(user: user) : const SizedBox.shrink(),
             const Calender(),
           ],
         ),

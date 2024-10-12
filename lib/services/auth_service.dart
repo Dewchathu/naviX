@@ -94,6 +94,7 @@ class AuthService {
               "courseDetails": [],
               "reqSkills": [],
               "jobList": [],
+              "dailyVideoList": [],
             };
 
             // Add user details to Firestore for the first time

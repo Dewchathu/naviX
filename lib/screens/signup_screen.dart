@@ -106,6 +106,7 @@ class _SignupFormState extends State<SignupForm> {
             ],
             "reqSkills": [],
             "jobList": [],
+            "dailyVideoList": [],
           }).then((value) {
             setState(() {
               isLoading = true;
