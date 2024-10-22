@@ -17,29 +17,39 @@ class VideoTile extends StatefulWidget {
 
 class _VideoTileState extends State<VideoTile> {
   late YoutubePlayerController _controller;
-  String videoTitle = 'Loading...'; // Placeholder until the title is fetched
-  String videoAuthor = 'Loading...'; // Placeholder until the author is fetched
+  String videoTitle = 'Loading...'; // Placeholder title
+  String videoAuthor = 'Loading...'; // Placeholder author
 
   @override
   void initState() {
     super.initState();
-    _controller = YoutubePlayerController(
-      initialVideoId: YoutubePlayer.convertUrlToId(widget.videoUrl) ?? "",
-    )..addListener(_onPlayerStateChange);
+    String? videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+
+    if (videoId != null) {
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: YoutubePlayerFlags(
+          autoPlay: true, // Disable autoplay
+        ),
+      );
+      // Fetch metadata after initialization
+      _controller.addListener(_updateMetadata);
+    }
   }
 
-  void _onPlayerStateChange() {
-    setState(() {
+  void _updateMetadata() {
+    if (_controller.value.isReady && _controller.metadata.title.isNotEmpty) {
+      setState(() {
         videoTitle = _controller.metadata.title;
         videoAuthor = _controller.metadata.author;
       });
-    
+    }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onPlayerStateChange);
-    _controller.dispose(); // Dispose of the controller
+    _controller.removeListener(_updateMetadata);
+    _controller.dispose();
     super.dispose();
   }
 
@@ -48,7 +58,9 @@ class _VideoTileState extends State<VideoTile> {
     return GestureDetector(
       onTap: () {
         moveToNextScreen(
-            context, VideoPlayerScreen(videoUrl: widget.videoUrl, title: videoTitle));
+          context,
+          VideoPlayerScreen(videoUrl: widget.videoUrl, title: videoTitle),
+        );
       },
       child: Column(
         children: [
@@ -58,8 +70,9 @@ class _VideoTileState extends State<VideoTile> {
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.red,
-              child: Text(
-                  videoAuthor.isNotEmpty ? videoAuthor[0] : 'A'), // First letter of author or a default
+              child: Text(videoAuthor.isNotEmpty
+                  ? videoAuthor[0]
+                  : 'A'), // First letter of author
             ),
             title: Text(videoTitle),
             subtitle: Text(videoAuthor),

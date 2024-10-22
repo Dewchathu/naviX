@@ -29,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserInfo();
     gemini.streamGenerateContent('''
 I am a Flutter developer with skills in Dart, and I have a keen interest in coding, designing, and mobile app development. My goal is to pursue a career as a mobile app developer, UX designer, or front-end developer. Please provide me with a detailed 3-month study plan as a map, including:
-
 Focus Areas: Outline the main areas of study I should focus on for each week.
 Topics/Technologies: Specify the technologies or subjects I should learn each day.
 
@@ -76,6 +75,7 @@ Topics/Technologies: Specify the technologies or subjects I should learn each da
                     .toList() ??
                 [],
             dailyVideoList: List<String>.from(userInfo["dailyVideoList"] ?? []),
+            initDate: DateTime.parse(userInfo["initDate"].toDate().toString()),
           );
         });
       }
@@ -127,7 +127,7 @@ Topics/Technologies: Specify the technologies or subjects I should learn each da
           children: <Widget>[
             IntroScroll(user: user),
             user != null? HomeScroll(user: user) : const SizedBox.shrink(),
-            const Calender(),
+            Calender(user: user),
           ],
         ),
         bottomNavigationBar: const TabBar(

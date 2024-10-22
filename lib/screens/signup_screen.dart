@@ -57,6 +57,8 @@ class _SignupFormState extends State<SignupForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _conPasswordController = TextEditingController();
+  final String handBook =
+      "https://firebasestorage.googleapis.com/v0/b/navix-dew.appspot.com/o/handBookPdf%2FPST%20Hand%20Book.pdf?alt=media&token=24a70175-d269-4307-9b48-80d595e2bf5a";
 
   final _formKey = GlobalKey<FormState>();
   bool isValidateMode = false;
@@ -107,6 +109,7 @@ class _SignupFormState extends State<SignupForm> {
             "reqSkills": [],
             "jobList": [],
             "dailyVideoList": [],
+            "initDate": DateTime.now(),
           }).then((value) {
             setState(() {
               isLoading = true;
