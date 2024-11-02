@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:navix/screens/home.dart';
 
+import '../screens/onboard_screen.dart';
 import '../widgets/info_messages.dart'; // Assuming you have this widget
 import 'firestore_service.dart'; // Firestore service to handle Firestore operations
 
@@ -53,24 +54,21 @@ class AuthService {
     return null;
   }
 
-  // Google Sign-In method
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleSignInAccount =
-          await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
+        await googleSignInAccount.authentication;
 
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken,
         );
 
-        final UserCredential userCredential =
-            await _auth.signInWithCredential(credential);
+        final UserCredential userCredential = await _auth.signInWithCredential(credential);
         final User? userDetails = userCredential.user;
 
         if (userDetails != null) {
@@ -80,9 +78,8 @@ class AuthService {
               .doc(userDetails.uid)
               .get();
 
-          // If the user document doesn't exist, it's the first time signing in
           if (!userDoc.exists) {
-            // Initialize fields with default values
+            // If user is new, initialize fields with default values
             Map<String, dynamic> userInfoMap = {
               "name": userDetails.displayName ?? "",
               "email": userDetails.email ?? "",
@@ -91,7 +88,18 @@ class AuthService {
               "preferences": [],
               "skills": [],
               "profileUrl": userDetails.photoURL ?? "",
-              "courseDetails": [],
+              "courseDetails": [
+                {
+                  "courseCode": "PHY11211",
+                  "courseName": "Physics",
+                  "semester": "1st Year 2nd Semester"
+                },
+                {
+                  "courseCode": "CHE11210",
+                  "courseName": "Chemistry",
+                  "semester": "1st Year 2nd Semester"
+                }
+              ],
               "reqSkills": [],
               "jobList": [],
               "dailyVideoList": [],
@@ -100,16 +108,20 @@ class AuthService {
 
             // Add user details to Firestore for the first time
             await FirestoreService().addUser(userDetails.uid, userInfoMap);
-          } else {
-            // Do not overwrite existing fields, user already exists
-            debugPrint('User already exists, not overwriting existing data.');
-          }
 
-          // Navigate to home screen or next screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+            // Navigate to OnBoardScreen for new users
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const OnBoardScreen()),
+            );
+          } else {
+            // If user already exists, navigate to HomeScreen
+            debugPrint('User already exists, not overwriting existing data.');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
         } else {
           showToast('User authentication failed.');
         }
@@ -121,6 +133,7 @@ class AuthService {
       debugPrint('Error signing in with Google: $e');
     }
   }
+
 
   // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {

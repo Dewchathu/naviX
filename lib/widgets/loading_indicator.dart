@@ -14,11 +14,11 @@ class loadingIndicator {
         height: double.infinity,
         child: const Center(
           child: SizedBox(
-            width: 200,
-            height: 200,
+            width: 150,
+            height: 150,
             child: LoadingIndicator(
-              indicatorType: Indicator.orbit,
-              colors: [Colors.blue],
+              indicatorType: Indicator.ballTrianglePath,
+              colors: [Colors.blue,Colors.white,Colors.black],
               strokeWidth: 2,
             ),
           ),

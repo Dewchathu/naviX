@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "765587323725-3h4305q1m6ksbmspg79g2aj28jjddhjv.apps.googleusercontent.com",
+          "client_id": "765587323725-6k93fs5fp36pnhepk4l271mcvq4cu9uu.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.dew.navix",
-            "certificate_hash": "58dc7ca1523359e4d6cd29d2dabaf4c06ee5fb82"
+            "certificate_hash": "e7d97f2460c52cc342991e8794d10c63e74daed9"
           }
         },
         {

@@ -24,6 +24,7 @@ class _SetupScreenState extends State<SetupScreen> {
   bool isSubmit = false;
   List<String> jobList = [];
   List<String> selectedJobs = [];
+  List<String> missingSkills = [];
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +113,7 @@ class _SetupScreenState extends State<SetupScreen> {
               loadingIndicator.show(context);
               gemini
                   .text(
-                      "${_preferencesController.text} are my preferences then give me some job title list relates to computer science as a list type.")
+                      "${_preferencesController.text} are my preferences and ${_skillsController.text} are my skills, then give me some job title list relates to computer science as a list type.")
                   .then((value) {
                 if (value?.output != null) {
                   // Split by newline and remove the leading numbers using regex
@@ -133,10 +134,10 @@ class _SetupScreenState extends State<SetupScreen> {
                   isSubmit = true;
                 });
                 loadingIndicator.dismiss();
-                print(jobList);
+                //print(jobList);
               }).catchError((e) {
                 loadingIndicator.dismiss();
-                print(e);
+                debugPrint(e);
               });
             },
             text: 'Submit',
@@ -161,6 +162,8 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
         ),
+        const SizedBox(height: 20),
+        const Text('Please select 3 jobs that suit you'),
         const SizedBox(height: 20),
 
         Wrap(
@@ -205,22 +208,48 @@ class _SetupScreenState extends State<SetupScreen> {
                 //   moveToNextScreen(context, const HomeScreen());
                 // } : null,
                 () {
-              FirestoreService().updateUserInfo({
-                "academicYear": _academicYearController.text,
-                "graduationYear": _graduationYearController.text,
-                "skills": _skillsController.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .toList(),
-                "preferences": _preferencesController.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .toList(),
-                "jobList": selectedJobs
-              }).then((_) {
-                moveToNextScreen(context, const HomeScreen());
-              });
-            },
+                  loadingIndicator.show(context);
+                  final userSkills = _skillsController.text.split(',').map((e) => e.trim()).toList();
+
+                  gemini
+                      .text("For the jobs ${selectedJobs.join(", ")}, List required skills using a maximum of two words without separating the job title")
+                      .then((value) {
+                    if (value?.output != null) {
+                      if (value?.output != null) {
+                        // Split by newline and remove the leading numbers using regex
+                        if (value?.output != null) {
+                          final requiredSkills = value!.output!
+                              .split('\n') // Split by newlines
+                              .map((skill) => skill.trim())
+                              .where((skill) => skill.isNotEmpty)
+                              .toList();
+
+                          // Filter out skills that the user already has
+                          missingSkills = requiredSkills.where((skill) => !userSkills.contains(skill)).toList();
+                          print(missingSkills);
+                        }
+                      }
+                    }
+
+                    FirestoreService().updateUserInfo({
+                      "academicYear": _academicYearController.text,
+                      "graduationYear": _graduationYearController.text,
+                      "skills": userSkills,
+                      "preferences": _preferencesController.text
+                          .split(',')
+                          .map((e) => e.trim())
+                          .toList(),
+                      "jobList": selectedJobs,
+                      "reqSkills": missingSkills,  // Store the missing skills in Firebase
+                    }).then((_) {
+                      moveToNextScreen(context, const HomeScreen());
+                      loadingIndicator.dismiss();
+                    });
+                  }).catchError((e) {
+                    loadingIndicator.dismiss();
+                    debugPrint(e);
+                  });
+                },
             text: 'Submit',
           ),
         ),
