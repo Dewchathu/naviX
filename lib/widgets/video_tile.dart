@@ -17,8 +17,8 @@ class VideoTile extends StatefulWidget {
 
 class _VideoTileState extends State<VideoTile> {
   late YoutubePlayerController _controller;
-  String videoTitle = 'Loading...'; // Placeholder title
-  String videoAuthor = 'Loading...'; // Placeholder author
+  String videoTitle = 'Loading...';
+  String videoAuthor = 'Loading...';
 
   @override
   void initState() {
@@ -28,27 +28,30 @@ class _VideoTileState extends State<VideoTile> {
     if (videoId != null) {
       _controller = YoutubePlayerController(
         initialVideoId: videoId,
-        flags: YoutubePlayerFlags(
-          autoPlay: true, // Disable autoplay
+        flags: const YoutubePlayerFlags(
+          autoPlay: false, // Disable autoplay
         ),
-      );
-      // Fetch metadata after initialization
-      _controller.addListener(_updateMetadata);
+      )..addListener(_checkMetadataReady);
     }
   }
 
-  void _updateMetadata() {
-    if (_controller.value.isReady && _controller.metadata.title.isNotEmpty) {
+  void _checkMetadataReady() {
+    if (_controller.value.isReady && mounted) {
       setState(() {
-        videoTitle = _controller.metadata.title;
-        videoAuthor = _controller.metadata.author;
+        videoTitle = _controller.metadata.title.isNotEmpty
+            ? _controller.metadata.title
+            : "Unknown Title";
+        videoAuthor = _controller.metadata.author.isNotEmpty
+            ? _controller.metadata.author
+            : "Unknown Author";
       });
+      _controller.removeListener(_checkMetadataReady); // Remove listener after fetching metadata
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_updateMetadata);
+    _controller.removeListener(_checkMetadataReady);
     _controller.dispose();
     super.dispose();
   }
@@ -70,9 +73,9 @@ class _VideoTileState extends State<VideoTile> {
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.red,
-              child: Text(videoAuthor.isNotEmpty
-                  ? videoAuthor[0]
-                  : 'A'), // First letter of author
+              child: Text(
+                videoAuthor.isNotEmpty ? videoAuthor[0] : 'A',
+              ), // First letter of author
             ),
             title: Text(videoTitle),
             subtitle: Text(videoAuthor),
