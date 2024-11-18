@@ -1,6 +1,6 @@
 # navix
 
-An AI university student guide.
+An AI university student guide...
 
 ## Getting Started
 
