@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
@@ -27,16 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserInfo();
-    gemini.streamGenerateContent('''
-I am a Flutter developer with skills in Dart, and I have a keen interest in coding, designing, and mobile app development. My goal is to pursue a career as a mobile app developer, UX designer, or front-end developer. Please provide me with a detailed 3-month study plan as a map, including:
-Focus Areas: Outline the main areas of study I should focus on for each week.
-Topics/Technologies: Specify the technologies or subjects I should learn each day.
 
-''').listen((value) {
-      print(value.output);
-    }).onError((e) {
-      print(e);
-    });
   }
 
   Future<void> _loadUserInfo() async {
@@ -67,10 +59,6 @@ Topics/Technologies: Specify the technologies or subjects I should learn each da
             profileUrl:
                 userInfo["profileUrl"] ?? "assets/images/profile_image.png",
             jobList: (userInfo["jobList"] as List<dynamic>?)
-                    ?.map((skill) => skill.toString())
-                    .toList() ??
-                [],
-            reqSkills: (userInfo["reqSkills"] as List<dynamic>?)
                     ?.map((skill) => skill.toString())
                     .toList() ??
                 [],

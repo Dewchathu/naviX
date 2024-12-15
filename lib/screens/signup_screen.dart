@@ -106,8 +106,9 @@ class _SignupFormState extends State<SignupForm> {
                 "semester": "1st Year 2nd Semester"
               }
             ],
-            "reqSkills": [],
-            "jobList": [],
+            "threeMonthList": [],
+            "oneMonthList": [],
+            "oneWeekList": [],
             "dailyVideoList": [],
             "initDate": DateTime.now(),
           }).then((value) {

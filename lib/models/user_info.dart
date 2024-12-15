@@ -6,7 +6,6 @@ class UserInfo {
   final List<String> skills;
   final List<String> preferences;
   final List<String> jobList;
-  final List<String> reqSkills;
   final List<Map<String, dynamic>> courseDetails;
   final String profileUrl;
   final List<String> dailyVideoList;
@@ -20,7 +19,6 @@ class UserInfo {
     required this.skills,
     required this.preferences,
     required this.jobList,
-    required this.reqSkills,
     required this.courseDetails,
     required this.profileUrl,
     required this.dailyVideoList,

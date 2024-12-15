@@ -98,7 +98,7 @@ _AppointmentDataSource _getCalendarDataSource(
       appointment.startTime.hashCode, // Unique ID
       appointment.subject,
       'Your appointment is scheduled for ${appointment.startTime}',
-      appointment.startTime.subtract(const Duration(minutes: 52)),
+      appointment.startTime.subtract(const Duration(minutes: 30)),
     );
   }
 

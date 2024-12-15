@@ -100,7 +100,6 @@ class AuthService {
                   "semester": "1st Year 2nd Semester"
                 }
               ],
-              "reqSkills": [],
               "jobList": [],
               "dailyVideoList": [],
               "initDate": DateTime.now(),

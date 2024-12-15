@@ -4,8 +4,9 @@ import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/services/firestore_service.dart';
 import 'package:navix/widgets/custom_button.dart';
-import 'package:navix/widgets/custom_form_field.dart';
 import 'package:navix/widgets/loading_indicator.dart';
+
+import '../widgets/custom_form_field.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -17,14 +18,17 @@ class SetupScreen extends StatefulWidget {
 class _SetupScreenState extends State<SetupScreen> {
   final TextEditingController _academicYearController = TextEditingController();
   final TextEditingController _graduationYearController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController _preferencesController = TextEditingController();
   final TextEditingController _skillsController = TextEditingController();
   final gemini = Gemini.instance;
   bool isSubmit = false;
   List<String> jobList = [];
   List<String> selectedJobs = [];
-  List<String> missingSkills = [];
+  List<String> threeMonthList = [];
+  List<String> oneMonthList = [];
+  List<String> oneWeekList = [];
+  List<String> dailyVideoList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -34,34 +38,6 @@ class _SetupScreenState extends State<SetupScreen> {
           padding: const EdgeInsets.all(24.0),
           child: !isSubmit ? _aboutUser() : _jobList(),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String title,
-    required TextEditingController controller,
-    required String hintText,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          CustomFormField(
-            controller: controller,
-            hintText: hintText,
-          )
-        ],
       ),
     );
   }
@@ -113,7 +89,8 @@ class _SetupScreenState extends State<SetupScreen> {
               loadingIndicator.show(context);
               gemini
                   .text(
-                      "${_preferencesController.text} are my preferences and ${_skillsController.text} are my skills, then give me some job title list relates to computer science as a list type.")
+                  "${_preferencesController.text} are my preferences, and ${_skillsController.text} are my skills. What are some job titles related to computer science that align with these preferences and skills? Provide the answer as a list."
+              )
                   .then((value) {
                 if (value?.output != null) {
                   // Split by newline and remove the leading numbers using regex
@@ -121,12 +98,13 @@ class _SetupScreenState extends State<SetupScreen> {
                     jobList = value!.output!
                         .split('\n') // Split by newlines
                         .map((job) => job
-                            .replaceAll('*', '')
-                            .trim()) // Remove * and trim spaces
+                        .replaceAll('*', '')
+                        .replaceAll('-', '')
+                        .trim())
                         .where((job) =>
-                            job.isNotEmpty &&
-                            !job.contains(
-                                ':')) // Remove empty entries and titles with colon
+                    job.isNotEmpty &&
+                        !job.contains(
+                            ':')) // Remove empty entries and titles with colon
                         .toList();
                   }
                 }
@@ -145,7 +123,12 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
       ],
     );
+
   }
+
+
+
+
 
   Widget _jobList() {
     return Column(
@@ -175,10 +158,8 @@ class _SetupScreenState extends State<SetupScreen> {
               onTap: () {
                 setState(() {
                   if (isSelected) {
-                    // Deselect the job if it's already selected
                     selectedJobs.remove(job);
                   } else if (selectedJobs.length < 3) {
-                    // Select the job if less than 3 jobs are selected
                     selectedJobs.add(job);
                   }
                 });
@@ -187,69 +168,36 @@ class _SetupScreenState extends State<SetupScreen> {
             );
           }).toList(),
         ),
-
         const SizedBox(height: 30),
-
-        // Display selected jobs
-        Center(
-          child: Text(
-            'Selected Jobs: ${selectedJobs.join(", ")}',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
         Center(
           child: CustomButton(
-            onPressed:
-                // selectedJobs.isNotEmpty ? () {
-                //   // Move to the next screen or save selected jobs
-                //   moveToNextScreen(context, const HomeScreen());
-                // } : null,
-                () {
-                  loadingIndicator.show(context);
-                  final userSkills = _skillsController.text.split(',').map((e) => e.trim()).toList();
+            onPressed: () async {
+              loadingIndicator.show(context);
 
-                  gemini
-                      .text("For the jobs ${selectedJobs.join(", ")}, List required skills using a maximum of two words without separating the job title")
-                      .then((value) {
-                    if (value?.output != null) {
-                      if (value?.output != null) {
-                        // Split by newline and remove the leading numbers using regex
-                        if (value?.output != null) {
-                          final requiredSkills = value!.output!
-                              .split('\n') // Split by newlines
-                              .map((skill) => skill.trim())
-                              .where((skill) => skill.isNotEmpty)
-                              .toList();
+              try {
+                // Step 1: Process Three-Month List
+                await _processThreeMonthList();
 
-                          // Filter out skills that the user already has
-                          missingSkills = requiredSkills.where((skill) => !userSkills.contains(skill)).toList();
-                          print(missingSkills);
-                        }
-                      }
-                    }
+                // Step 2: Save Data to Firebase
+                await FirestoreService().updateUserInfo({
+                  "academicYear": _academicYearController.text,
+                  "graduationYear": _graduationYearController.text,
+                  "skills": _skillsController.text.split(',').map((e) => e.trim()).toList(),
+                  "preferences": _preferencesController.text.split(',').map((e) => e.trim()).toList(),
+                  "jobList": selectedJobs,
+                  "threeMonthList": threeMonthList,
+                  "oneMonthList": oneMonthList,
+                  "oneWeekList": oneWeekList,
+                  "dailyVideoList": dailyVideoList,
+                });
 
-                    FirestoreService().updateUserInfo({
-                      "academicYear": _academicYearController.text,
-                      "graduationYear": _graduationYearController.text,
-                      "skills": userSkills,
-                      "preferences": _preferencesController.text
-                          .split(',')
-                          .map((e) => e.trim())
-                          .toList(),
-                      "jobList": selectedJobs,
-                      "reqSkills": missingSkills,  // Store the missing skills in Firebase
-                    }).then((_) {
-                      moveToNextScreen(context, const HomeScreen());
-                      loadingIndicator.dismiss();
-                    });
-                  }).catchError((e) {
-                    loadingIndicator.dismiss();
-                    debugPrint(e);
-                  });
-                },
+                moveToNextScreen(context, const HomeScreen());
+              } catch (e) {
+                debugPrint('Error: $e');
+              } finally {
+                loadingIndicator.dismiss();
+              }
+            },
             text: 'Submit',
           ),
         ),
@@ -257,7 +205,35 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  // Function to build selectable job cards
+  Widget _buildInputField({
+    required String title,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          CustomFormField(
+            controller: controller,
+            hintText: hintText,
+          )
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildSelectableCard(String job, bool isSelected) {
     return IntrinsicWidth(
       child: Container(
@@ -287,4 +263,92 @@ class _SetupScreenState extends State<SetupScreen> {
       ),
     );
   }
+
+  Future<void> _processThreeMonthList() async {
+    // Process Three-Month List
+    Candidates? response = await gemini.text(
+      "What are 3 key areas to learn in ${selectedJobs} that complement ${_skillsController.text}?",
+    );
+
+    // Print the response for debugging
+    print('Gemini response for Three-Month List: ${response?.output}');
+
+    String? geminiResponse = response?.output;
+
+    if (geminiResponse != null) {
+      RegExp regex = RegExp(r"\*\*(\d+)\.\s(.*?)\*\*");
+      Iterable<RegExpMatch> matches = regex.allMatches(geminiResponse);
+      threeMonthList = matches.map((match) => match.group(2)!).toList();
+    }
+
+    // Process One-Month List for the first topic
+    if (threeMonthList.isNotEmpty) {
+      String topic = threeMonthList.first;
+      Candidates? subtopicsResponse = await gemini.text(
+        "Provide 4 subtopics under the topic '$topic'.",
+      );
+
+      // Print the response for debugging
+      print('Gemini response for One-Month List: ${subtopicsResponse?.output}');
+
+      String? geminiSubtopicsResponse = subtopicsResponse?.output;
+
+      if (geminiSubtopicsResponse != null) {
+        oneMonthList = geminiSubtopicsResponse
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+      }
+    }
+
+    // Process One-Week List for the first subtopic
+    if (oneMonthList.isNotEmpty) {
+      String subtopic = oneMonthList.first;
+      Candidates? subSubcategoriesResponse = await gemini.text(
+        "Provide 7 subcategories under the subtopic '$subtopic'.",
+      );
+
+      // Print the response for debugging
+      print('Gemini response for One-Week List: ${subSubcategoriesResponse?.output}');
+
+      String? geminiSubSubcategoriesResponse = subSubcategoriesResponse?.output;
+
+      if (geminiSubSubcategoriesResponse != null) {
+        oneWeekList = geminiSubSubcategoriesResponse
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+      }
+    }
+
+    // Generate Daily Video Links
+    if (oneWeekList.isNotEmpty) {
+      String dailyTopic = oneWeekList.first;
+      Stream<Candidates> videoLinksResponse = gemini.streamGenerateContent(
+        "Provide 5 YouTube links for learning about '$dailyTopic'.",
+      );
+
+      String? geminiVideoLinksResponse;
+
+      await for (Candidates candidates in videoLinksResponse) {
+        geminiVideoLinksResponse = candidates.output;
+      }
+
+      // Print the response for debugging
+      print('Gemini response for Daily Video Links: $geminiVideoLinksResponse');
+
+      if (geminiVideoLinksResponse != null) {
+        dailyVideoList = geminiVideoLinksResponse
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.startsWith("http"))
+            .toList();
+      }
+    }
+  }
+
+
 }
+

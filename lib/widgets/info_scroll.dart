@@ -25,7 +25,6 @@ class _IntroScrollState extends State<IntroScroll> {
     preferences =
         (widget.user?.preferences as List<dynamic>?)?.join(", ") ?? "";
     jobList = (widget.user?.jobList as List<dynamic>?)?.join(", ") ?? "";
-    reqSkills = (widget.user?.reqSkills as List<dynamic>?)?.join(", ") ?? "";
   }
 
   List<TableRow> _buildCourseRows() {
@@ -73,7 +72,7 @@ class _IntroScrollState extends State<IntroScroll> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(16.0), // Add padding for cleaner look
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16), // Add padding for cleaner look
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -85,9 +84,6 @@ class _IntroScrollState extends State<IntroScroll> {
             const SizedBox(height: 20),
             _buildSectionTitle('Job List'),
             _buildInfoCard(jobList),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Required Skills'),
-            _buildInfoCard(reqSkills),
             const SizedBox(height: 20),
             _buildSectionTitle('Elective Subjects'),
             _buildTable(),
