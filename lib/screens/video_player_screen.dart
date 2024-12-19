@@ -17,8 +17,6 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   late YoutubePlayerController _controller;
-  late PlayerState _playerState;
-  late YoutubeMetaData _videoMetaData;
   bool _isPlayerReady = false;
 
   @override
