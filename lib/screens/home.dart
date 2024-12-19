@@ -22,12 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String profilePictureUrl = "";
   UserInfo? user;
   final gemini = Gemini.instance;
+  List<String> threeMonthList = [];
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
-
   }
 
   Future<void> _loadUserInfo() async {
@@ -63,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 [],
             dailyVideoList: List<String>.from(userInfo["dailyVideoList"] ?? []),
             initDate: DateTime.parse(userInfo["initDate"].toDate().toString()),
+            oneWeekList: List<String>.from(userInfo["oneWeekList"] ?? [])
           );
         });
       }

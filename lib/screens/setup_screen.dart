@@ -7,6 +7,7 @@ import 'package:navix/widgets/custom_button.dart';
 import 'package:navix/widgets/loading_indicator.dart';
 
 import '../widgets/custom_form_field.dart';
+import '../widgets/setup_process.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -176,7 +177,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
               try {
                 // Step 1: Process Three-Month List
-                await _processThreeMonthList();
+                await _runTest();
 
                 // Step 2: Save Data to Firebase
                 await FirestoreService().updateUserInfo({
@@ -264,91 +265,32 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Future<void> _processThreeMonthList() async {
-    // Process Three-Month List
-    Candidates? response = await gemini.text(
-      "What are 3 key areas to learn in ${selectedJobs} that complement ${_skillsController.text}?",
-    );
+  Future<void> _runTest() async {
+    loadingIndicator.show(context);
+    try {
+      // Get selected jobs and skills
+      String skills = _skillsController.text;
 
-    // Print the response for debugging
-    print('Gemini response for Three-Month List: ${response?.output}');
+      // Call the method from `setupProcess.dart`
+      await setupProcess(selectedJobs, skills).then((value) => {
+        setState(() {
+          threeMonthList = value['threeMonthList'] ?? [];
+          oneMonthList = value['oneMonthList'] ?? [];
+          oneWeekList = value['oneWeekList'] ?? [];
+          dailyVideoList = value['dailyVideoList'] ?? [];
+        }),
+        debugPrint('Results: $value')
+      });
 
-    String? geminiResponse = response?.output;
-
-    if (geminiResponse != null) {
-      RegExp regex = RegExp(r"\*\*(\d+)\.\s(.*?)\*\*");
-      Iterable<RegExpMatch> matches = regex.allMatches(geminiResponse);
-      threeMonthList = matches.map((match) => match.group(2)!).toList();
-    }
-
-    // Process One-Month List for the first topic
-    if (threeMonthList.isNotEmpty) {
-      String topic = threeMonthList.first;
-      Candidates? subtopicsResponse = await gemini.text(
-        "Provide 4 subtopics under the topic '$topic'.",
-      );
-
-      // Print the response for debugging
-      print('Gemini response for One-Month List: ${subtopicsResponse?.output}');
-
-      String? geminiSubtopicsResponse = subtopicsResponse?.output;
-
-      if (geminiSubtopicsResponse != null) {
-        oneMonthList = geminiSubtopicsResponse
-            .split('\n')
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .toList();
-      }
-    }
-
-    // Process One-Week List for the first subtopic
-    if (oneMonthList.isNotEmpty) {
-      String subtopic = oneMonthList.first;
-      Candidates? subSubcategoriesResponse = await gemini.text(
-        "Provide 7 subcategories under the subtopic '$subtopic'.",
-      );
-
-      // Print the response for debugging
-      print('Gemini response for One-Week List: ${subSubcategoriesResponse?.output}');
-
-      String? geminiSubSubcategoriesResponse = subSubcategoriesResponse?.output;
-
-      if (geminiSubSubcategoriesResponse != null) {
-        oneWeekList = geminiSubSubcategoriesResponse
-            .split('\n')
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .toList();
-      }
-    }
-
-    // Generate Daily Video Links
-    if (oneWeekList.isNotEmpty) {
-      String dailyTopic = oneWeekList.first;
-      Stream<Candidates> videoLinksResponse = gemini.streamGenerateContent(
-        "Provide 5 YouTube links for learning about '$dailyTopic'.",
-      );
-
-      String? geminiVideoLinksResponse;
-
-      await for (Candidates candidates in videoLinksResponse) {
-        geminiVideoLinksResponse = candidates.output;
-      }
-
-      // Print the response for debugging
-      print('Gemini response for Daily Video Links: $geminiVideoLinksResponse');
-
-      if (geminiVideoLinksResponse != null) {
-        dailyVideoList = geminiVideoLinksResponse
-            .split('\n')
-            .map((line) => line.trim())
-            .where((line) => line.startsWith("http"))
-            .toList();
-      }
+      debugPrint('Three-Month List: $threeMonthList');
+      debugPrint('One-Month List: $oneMonthList');
+      debugPrint('One-Week List: $oneWeekList');
+      debugPrint('Daily Video List: $dailyVideoList');
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      loadingIndicator.dismiss();
     }
   }
-
-
 }
 

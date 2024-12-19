@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/video_player_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoTile extends StatefulWidget {
   final String videoUrl;
@@ -19,40 +22,58 @@ class _VideoTileState extends State<VideoTile> {
   late YoutubePlayerController _controller;
   String videoTitle = 'Loading...';
   String videoAuthor = 'Loading...';
+  String videoThumbnailUrl = 'Loading...';
+  bool isLoading = true;
+  String youtubeApiKey = '';
+
 
   @override
   void initState() {
     super.initState();
-    String? videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
-
-    if (videoId != null) {
-      _controller = YoutubePlayerController(
-        initialVideoId: videoId,
-        flags: const YoutubePlayerFlags(
-          autoPlay: false, // Disable autoplay
-        ),
-      )..addListener(_checkMetadataReady);
-    }
+    _fetchVideoDetails();
   }
 
-  void _checkMetadataReady() {
-    if (_controller.value.isReady && mounted) {
-      setState(() {
-        videoTitle = _controller.metadata.title.isNotEmpty
-            ? _controller.metadata.title
-            : "Unknown Title";
-        videoAuthor = _controller.metadata.author.isNotEmpty
-            ? _controller.metadata.author
-            : "Unknown Author";
-      });
-      _controller.removeListener(_checkMetadataReady); // Remove listener after fetching metadata
+  // Fetch YouTube video details using YouTube API
+  Future<void> _fetchVideoDetails() async {
+    String? videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+    await dotenv.load(fileName: ".env");
+    youtubeApiKey = dotenv.env['YOUTUBE_API_KEY'] ?? '';
+
+    if (videoId != null) {
+      final apiKey = youtubeApiKey;
+      final url =
+      Uri.parse('https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$videoId&key=$apiKey');
+
+      try {
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final snippet = data['items'][0]['snippet'];
+          setState(() {
+            videoTitle = snippet['title'] ?? 'Unknown Title';
+            videoAuthor = snippet['channelTitle'] ?? 'Unknown Author';
+            videoThumbnailUrl = snippet['thumbnails']['high']['url'] ?? '';
+            isLoading = false;
+          });
+        } else {
+          throw Exception('Failed to load video details');
+        }
+      } catch (e) {
+        setState(() {
+          videoTitle = 'Error loading video';
+          videoAuthor = 'Error loading author';
+          isLoading = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_checkMetadataReady);
-    _controller.dispose();
+    if (mounted) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -60,16 +81,18 @@ class _VideoTileState extends State<VideoTile> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        moveToNextScreen(
-          context,
-          VideoPlayerScreen(videoUrl: widget.videoUrl, title: videoTitle),
-        );
+        if (!isLoading) {
+          moveToNextScreen(
+            context,
+            VideoPlayerScreen(videoUrl: widget.videoUrl, title: videoTitle),
+          );
+        }
       },
       child: Column(
         children: [
-          Image.network(
-            'https://img.youtube.com/vi/${YoutubePlayer.convertUrlToId(widget.videoUrl)}/hqdefault.jpg',
-          ),
+          isLoading
+              ? const CircularProgressIndicator() // Show a loading indicator while fetching data
+              : Image.network(videoThumbnailUrl),
           ListTile(
             leading: CircleAvatar(
               backgroundColor: Colors.red,

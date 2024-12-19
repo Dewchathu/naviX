@@ -10,6 +10,7 @@ class UserInfo {
   final String profileUrl;
   final List<String> dailyVideoList;
   final DateTime initDate;
+  final List<String> oneWeekList;
 
   UserInfo({
     required this.name,
@@ -23,5 +24,6 @@ class UserInfo {
     required this.profileUrl,
     required this.dailyVideoList,
     required this.initDate,
+    required this.oneWeekList
   });
 }

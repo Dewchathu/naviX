@@ -17,21 +17,15 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   late YoutubePlayerController _controller;
-  late TextEditingController _idController;
-  late TextEditingController _seekToController;
-
   late PlayerState _playerState;
   late YoutubeMetaData _videoMetaData;
-  double _volume = 100;
-  bool _muted = false;
   bool _isPlayerReady = false;
-  String videoId = "";
-  //YoutubePlayer.convertUrlToId(widget.videoUrl)
 
   @override
   void initState() {
     super.initState();
-    videoId = YoutubePlayer.convertUrlToId(widget.videoUrl) ?? "";
+    String videoId = YoutubePlayer.convertUrlToId(widget.videoUrl) ?? "";
+
     _controller = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(
@@ -43,14 +37,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         forceHD: false,
         enableCaption: true,
       ),
-    )..addListener(listener);
-    _idController = TextEditingController();
-    _seekToController = TextEditingController();
+    )..addListener(_listener);
+
     _videoMetaData = const YoutubeMetaData();
     _playerState = PlayerState.unknown;
   }
 
-  void listener() {
+  void _listener() {
     if (_isPlayerReady && mounted && !_controller.value.isFullScreen) {
       setState(() {
         _playerState = _controller.value.playerState;
@@ -61,7 +54,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void deactivate() {
-    // Pauses video while navigating to next page.
     _controller.pause();
     super.deactivate();
   }
@@ -69,8 +61,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void dispose() {
     _controller.dispose();
-    _idController.dispose();
-    _seekToController.dispose();
     super.dispose();
   }
 
@@ -81,17 +71,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         title: Text(widget.title),
       ),
       body: YoutubePlayer(
-    controller: _controller,
-    showVideoProgressIndicator: true,
-    progressIndicatorColor: Colors.amber,
-    progressColors: const ProgressBarColors(
-      playedColor: Colors.amber,
-      handleColor: Colors.amberAccent,
-    ),
-    onReady: () {
-      _controller.addListener(listener);
-    },
-),
+        controller: _controller,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: Colors.amber,
+        progressColors: const ProgressBarColors(
+          playedColor: Colors.amber,
+          handleColor: Colors.amberAccent,
+        ),
+        onReady: () {
+          _isPlayerReady = true;
+        },
+      ),
     );
   }
 }
