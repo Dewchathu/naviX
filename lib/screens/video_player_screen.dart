@@ -37,15 +37,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ),
     )..addListener(_listener);
 
-    _videoMetaData = const YoutubeMetaData();
-    _playerState = PlayerState.unknown;
+   // _videoMetaData = const YoutubeMetaData();
+   // _playerState = PlayerState.unknown;
   }
 
   void _listener() {
     if (_isPlayerReady && mounted && !_controller.value.isFullScreen) {
       setState(() {
-        _playerState = _controller.value.playerState;
-        _videoMetaData = _controller.metadata;
+       // _playerState = _controller.value.playerState;
+       // _videoMetaData = _controller.metadata;
       });
     }
   }
