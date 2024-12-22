@@ -1,64 +1,109 @@
-// Import the Genkit core libraries and plugins.
-import {genkit, z} from "genkit";
-import {googleAI} from "@genkit-ai/googleai";
-
-// Import models from the Google AI plugin. The Google AI API provides access to
-// several generative models. Here, we import Gemini 1.5 Flash.
-import {gemini15Flash} from "@genkit-ai/googleai";
-
-// From the Firebase plugin, import the functions needed to deploy flows using
-// Cloud Functions.
-import {firebaseAuth} from "@genkit-ai/firebase/auth";
-import {onFlow} from "@genkit-ai/firebase/functions";
+import {
+  devLocalIndexerRef,
+  devLocalVectorstore,
+} from '@genkit-ai/dev-local-vectorstore';
+import { gemini20FlashExp, googleAI, textEmbeddingGecko001} from '@genkit-ai/googleai'; 
+import { z, genkit } from 'genkit';
+import { run } from 'genkit';
+import { Document } from 'genkit/retriever';
+import { chunk } from 'llm-chunk';
+import { readFile } from 'fs/promises';
+import path from 'path';
+import pdf from 'pdf-parse';
+import { devLocalRetrieverRef } from '@genkit-ai/dev-local-vectorstore';
 
 const ai = genkit({
   plugins: [
-    // Load the Google AI plugin. You can optionally specify your API key
-    // by passing in a config object; if you don't, the Google AI plugin uses
-    // the value from the GOOGLE_GENAI_API_KEY environment variable, which is
-    // the recommended practice.
+    // Google AI provides the textEmbedding embedder
     googleAI(),
+
+    // the local vector store requires an embedder to translate from text to vector
+    devLocalVectorstore([
+      {
+        indexName: 'csBook',
+        embedder: textEmbeddingGecko001, 
+      },
+    ]),
   ],
 });
 
-// Define a simple flow that prompts an LLM to generate menu suggestions.
-export const menuSuggestionFlow = onFlow(
-  ai,
-  {
-    name: "menuSuggestionFlow",
-    inputSchema: z.string(),
-    outputSchema: z.string(),
-    authPolicy: firebaseAuth((user) => {
-      // By default, the firebaseAuth policy requires that all requests have an
-      // `Authorization: Bearer` header containing the user's Firebase
-      // Authentication ID token. All other requests are rejected with error
-      // 403. If your app client uses the Cloud Functions for Firebase callable
-      // functions feature, the library automatically attaches this header to
-      // requests.
+export const csBookIndexer = devLocalIndexerRef('csBook'); // Changed indexer name
 
-      // You should also set additional policy requirements as appropriate for
-      // your app. For example:
-      // if (!user.email_verified) {
-      //   throw new Error("Verified email required to run flow");
-      // }
-    }),
+const chunkingConfig = {
+  minLength: 500, 
+  maxLength: 1000,
+  splitter: 'sentence',
+  overlap: 100,
+  delimiters: '',
+} as any;
+
+async function extractTextFromPdf(filePath: string) {
+  const pdfFile = path.resolve(filePath);
+  const dataBuffer = await readFile(pdfFile);
+  const data = await pdf(dataBuffer);
+  return data.text;
+}
+
+export const indexCsBook = ai.defineFlow(
+  {
+    name: 'indexCsBook',
+    inputSchema: z.string().describe('PDF file path'),
+    outputSchema: z.void(),
   },
-  async (subject) => {
-    // Construct a request and send it to the model API.
-    const prompt =
-      `Suggest an item for the menu of a ${subject} themed restaurant`;
-    const llmResponse = await ai.generate({
-      model: gemini15Flash,
-      prompt: prompt,
-      config: {
-        temperature: 1,
-      },
+  async (filePath: string) => {
+    filePath = path.resolve(filePath);
+
+    // Read the pdf.
+    const pdfTxt = await run('extract-text', () =>
+      extractTextFromPdf(filePath)
+    );
+
+    // Divide the pdf text into segments.
+    const chunks = await run('chunk-it', async () =>
+      chunk(pdfTxt, chunkingConfig)
+    );
+
+    // Convert chunks of text into documents to store in the index.
+    const documents = chunks.map((text) => {
+      return Document.fromText(text, { filePath });
     });
 
-    // Handle the response from the model API. In this sample, we just
-    // convert it to a string, but more complicated flows might coerce the
-    // response into structured output or chain the response into another
-    // LLM call, etc.
-    return llmResponse.text;
+    // Add documents to the index.
+    await ai.index({
+      indexer: csBookIndexer,
+      documents,
+    });
+  }
+);
+
+// Define the retriever reference
+export const csBookRetriever = devLocalRetrieverRef('csBook'); 
+
+export const csBookQAFlow = ai.defineFlow(
+  { name: 'csBookQA', inputSchema: z.string(), outputSchema: z.string() },
+  async (input: string) => {
+    // retrieve relevant documents
+    const docs = await ai.retrieve({
+      retriever: csBookRetriever,
+      query: input,
+      options: { k: 3 },
+    });
+
+    // generate a response
+    const { text } = await ai.generate({
+      model: gemini20FlashExp,
+      prompt: `
+You are acting as a helpful AI assistant that can answer 
+questions about the content of the provided CS book. 
+
+Use only the context provided to answer the question.
+If you don't know, do not make up an answer.
+Do not add or change information from the book.
+
+Question: ${input}`,
+      docs,
+    });
+
+    return text;
   }
 );

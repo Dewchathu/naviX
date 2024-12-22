@@ -71,10 +71,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       body: YoutubePlayer(
         controller: _controller,
         showVideoProgressIndicator: true,
-        progressIndicatorColor: Colors.amber,
+        progressIndicatorColor: Colors.blue,
         progressColors: const ProgressBarColors(
-          playedColor: Colors.amber,
-          handleColor: Colors.amberAccent,
+          playedColor: Colors.blue,
+          handleColor: Colors.blueAccent,
         ),
         onReady: () {
           _isPlayerReady = true;

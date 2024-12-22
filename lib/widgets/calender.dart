@@ -3,6 +3,8 @@ import 'package:navix/models/user_info.dart';
 import 'package:navix/services/notification_service.dart';
 import 'package:random_color/random_color.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class Calender extends StatefulWidget {
   final UserInfo? user;
@@ -22,6 +24,9 @@ class _CalenderState extends State<Calender> {
   @override
   void initState() {
     super.initState();
+    // Initialize timezone for Colombo
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Colombo'));
     if (widget.user != null) {
       initDate = widget.user!.initDate;
       oneWeekList = widget.user!.oneWeekList;
@@ -31,19 +36,31 @@ class _CalenderState extends State<Calender> {
   }
 
   void _scheduleWeeklyTasks() {
-    // Ensure the week starts on the current week's Monday
-    DateTime now = DateTime.now();
-    DateTime monday = now.subtract(Duration(days: now.weekday-1));
+    // Get current time in Colombo timezone
+    tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+
+    // Ensure the week starts on Monday at midnight
+    tz.TZDateTime monday = tz.TZDateTime(tz.local, now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1));
 
     for (int i = 0; i < oneWeekList.length; i++) {
-      DateTime taskTime = monday.add(Duration(days: i, hours: 7));
+      // Schedule task for each day at 7:00 AM explicitly
+      tz.TZDateTime taskTime = tz.TZDateTime(
+        tz.local,
+        monday.year,
+        monday.month,
+        monday.day + i, // Add days for each task
+        21, // Hour
+        10, // Minute
+        0, // Second
+      );
 
       Appointment appointment = Appointment(
         startTime: taskTime,
         endTime: taskTime.add(const Duration(minutes: 60)),
         subject: oneWeekList[i],
         color: _randomColor.randomColor(
-            colorBrightness: ColorBrightness.light
+          colorBrightness: ColorBrightness.random,
         ),
       );
 
@@ -54,13 +71,14 @@ class _CalenderState extends State<Calender> {
         taskTime.hashCode, // Unique ID
         oneWeekList[i],
         'Your task "${oneWeekList[i]}" is scheduled for $taskTime',
-        taskTime.subtract(const Duration(minutes: 30)),
+        taskTime.subtract(const Duration(minutes: 2)),
       );
     }
 
     // Update the state to refresh the calendar
     setState(() {});
   }
+
 
   @override
   Widget build(BuildContext context) {

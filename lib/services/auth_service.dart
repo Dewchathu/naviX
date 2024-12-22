@@ -57,30 +57,31 @@ class AuthService {
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+            await googleSignInAccount.authentication;
 
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken,
         );
 
-        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+        final UserCredential userCredential =
+            await _auth.signInWithCredential(credential);
         final User? userDetails = userCredential.user;
 
         if (userDetails != null) {
-          // Check if the user already exists in Firestore
-          DocumentSnapshot userDoc = await FirebaseFirestore.instance
-              .collection('users')
+          final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+              .collection('User')
               .doc(userDetails.uid)
               .get();
 
           if (!userDoc.exists) {
-            // If user is new, initialize fields with default values
-            Map<String, dynamic> userInfoMap = {
+            // New user: Initialize fields with default values
+            final Map<String, dynamic> userInfoMap = {
               "name": userDetails.displayName ?? "",
               "email": userDetails.email ?? "",
               "academicYear": null,
@@ -114,8 +115,7 @@ class AuthService {
               MaterialPageRoute(builder: (context) => const OnBoardScreen()),
             );
           } else {
-            // If user already exists, navigate to HomeScreen
-            debugPrint('User already exists, not overwriting existing data.');
+            debugPrint('User exists. Fetching details...');
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -132,7 +132,6 @@ class AuthService {
       debugPrint('Error signing in with Google: $e');
     }
   }
-
 
   // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {

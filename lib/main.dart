@@ -4,23 +4,23 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/providers/profile_provider.dart';
 import 'package:navix/screens/splash_screen.dart';
+import 'package:navix/services/notification_service.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Load environment variables
   await dotenv.load(fileName: ".env");
-
-  // Fetch API key from .env file, and handle missing value
-  String apiKey = dotenv.env['API_KEY'] ?? ''; 
-
-  // Initialize Gemini with the API key from .env
+  String apiKey = dotenv.env['API_KEY'] ?? '';
   Gemini.init(apiKey: apiKey, enableDebugging: true);
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize Notification Service
+  final NotificationService notificationService = NotificationService();
+  await notificationService.init();
+
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => ProfileProvider()),
   ], child: const MyApp()));

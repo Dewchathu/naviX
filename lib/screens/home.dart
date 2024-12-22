@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/profile_screen.dart';
@@ -72,67 +73,113 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<bool?> _showBackDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text(
+            'Are you sure you want to Quit?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Close'),
+              onPressed: () {
+                SystemNavigator.pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Yes'),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      initialIndex:
-          1, // Set this to 1 to open "Home" tab by default (0-based index)
-      child: Scaffold(
-        appBar: AppBar(
-          title: SizedBox(
-            height: 35,
-            child: Image.asset('assets/images/logo_appbar.png'),
-          ),
-          automaticallyImplyLeading: false,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: GestureDetector(
-                onTap: () {
-                  moveToNextScreen(context, const ProfileScreen());
-                },
-                child: Consumer<ProfileProvider>(
-                  builder: (context, profileProvider, child) {
-                    return CircleAvatar(
-                      radius: 25,
-                      backgroundImage: profileProvider
-                                  .profilePictureUrl.isNotEmpty &&
-                              Uri.tryParse(profileProvider.profilePictureUrl)
-                                      ?.hasAbsolutePath ==
-                                  true
-                          ? NetworkImage(profileProvider.profilePictureUrl)
-                          : const AssetImage('assets/images/profile_image.png')
-                              as ImageProvider,
-                    );
+    return PopScope<Object>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) {
+          return;
+        }
+        final bool shouldPop = await _showBackDialog() ?? false;
+        if (context.mounted && shouldPop) {
+          Navigator.pop(context);
+        }
+      },
+      child: DefaultTabController(
+        length: 3,
+        initialIndex:
+            1, // Set this to 1 to open "Home" tab by default (0-based index)
+        child: Scaffold(
+          appBar: AppBar(
+            title: SizedBox(
+              height: 35,
+              child: Image.asset('assets/images/logo_appbar.png'),
+            ),
+            automaticallyImplyLeading: false,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: GestureDetector(
+                  onTap: () {
+                    moveToNextScreen(context, const ProfileScreen());
                   },
+                  child: Consumer<ProfileProvider>(
+                    builder: (context, profileProvider, child) {
+                      return CircleAvatar(
+                        radius: 25,
+                        backgroundImage: profileProvider
+                                    .profilePictureUrl.isNotEmpty &&
+                                Uri.tryParse(profileProvider.profilePictureUrl)
+                                        ?.hasAbsolutePath ==
+                                    true
+                            ? NetworkImage(profileProvider.profilePictureUrl)
+                            : const AssetImage('assets/images/profile_image.png')
+                                as ImageProvider,
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        body: TabBarView(
-          children: <Widget>[
-            IntroScroll(user: user),
-            user != null? HomeScroll(user: user) : const SizedBox.shrink(),
-            Calender(user: user),
-          ],
-        ),
-        bottomNavigationBar: const TabBar(
-          tabs: <Widget>[
-            Tab(
-              icon: Icon(Icons.list_alt_rounded),
-              text: 'Info',
-            ),
-            Tab(
-              icon: Icon(Icons.home),
-              text: 'Home',
-            ),
-            Tab(
-              icon: Icon(Icons.calendar_month_rounded),
-              text: 'Calendar',
-            ),
-          ],
+            ],
+          ),
+          body: TabBarView(
+            children: <Widget>[
+              IntroScroll(user: user),
+              user != null? HomeScroll(user: user) : const SizedBox.shrink(),
+              Calender(user: user),
+            ],
+          ),
+          bottomNavigationBar: const TabBar(
+            tabs: <Widget>[
+              Tab(
+                icon: Icon(Icons.list_alt_rounded),
+                text: 'Info',
+              ),
+              Tab(
+                icon: Icon(Icons.home),
+                text: 'Home',
+              ),
+              Tab(
+                icon: Icon(Icons.calendar_month_rounded),
+                text: 'Calendar',
+              ),
+            ],
+          ),
         ),
       ),
     );

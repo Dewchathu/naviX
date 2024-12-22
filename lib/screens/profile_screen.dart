@@ -86,124 +86,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile Section'),
-        actions: [
-          IconButton(
-            icon: Icon(isTextFieldEnabled ? Icons.lock_open : Icons.lock),
-            onPressed: () {
-              setState(() {
-                isTextFieldEnabled = !isTextFieldEnabled;
-              });
-            },
-          ),
-          if (isTextFieldEnabled)
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Profile Section'),
+          actions: [
             IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveUserInfo, // Save changes
+              icon: Icon(isTextFieldEnabled ? Icons.lock_open : Icons.lock),
+              onPressed: () {
+                setState(() {
+                  isTextFieldEnabled = !isTextFieldEnabled;
+                });
+              },
             ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            Center(
-              child: SizedBox(
-                height: 200,
-                width: 200,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  fit: StackFit.expand,
-                  children: [
-                    Consumer<ProfileProvider>(
-                      builder: (context, profileProvider, child) {
-                        return CircleAvatar(
-                          radius: 30,
-                          backgroundImage: profileProvider
-                                      .profilePictureUrl.isNotEmpty &&
-                                  Uri.tryParse(
-                                              profileProvider.profilePictureUrl)
-                                          ?.hasAbsolutePath ==
-                                      true
-                              ? NetworkImage(profileProvider.profilePictureUrl)
-                              : const AssetImage(
-                                      'assets/images/profile_image.png')
-                                  as ImageProvider,
-                        );
-                      },
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: -25,
-                      child: RawMaterialButton(
-                        onPressed: () {
-                          setState(() {
-                          showImageSourceDialog(context, _selectImage);
-                          });
+            if (isTextFieldEnabled)
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveUserInfo,
+              ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              Center(
+                child: SizedBox(
+                  height: 200,
+                  width: 200,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    fit: StackFit.expand,
+                    children: [
+                      Consumer<ProfileProvider>(
+                        builder: (context, profileProvider, child) {
+                          return CircleAvatar(
+                            radius: 30,
+                            backgroundImage: profileProvider
+                                        .profilePictureUrl.isNotEmpty &&
+                                    Uri.tryParse(
+                                                profileProvider.profilePictureUrl)
+                                            ?.hasAbsolutePath ==
+                                        true
+                                ? NetworkImage(profileProvider.profilePictureUrl)
+                                : const AssetImage(
+                                        'assets/images/profile_image.png')
+                                    as ImageProvider,
+                          );
                         },
-                        elevation: 2.0,
-                        fillColor: const Color(0xFFF5F6F9),
-                        padding: const EdgeInsets.all(15.0),
-                        shape: const CircleBorder(),
-                        child: const Icon(Icons.camera_alt_outlined,
-                            color: Colors.blue),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        bottom: 0,
+                        right: -25,
+                        child: RawMaterialButton(
+                          onPressed: () {
+                            setState(() {
+                            showImageSourceDialog(context, _selectImage);
+                            });
+                          },
+                          elevation: 2.0,
+                          fillColor: const Color(0xFFF5F6F9),
+                          padding: const EdgeInsets.all(15.0),
+                          shape: const CircleBorder(),
+                          child: const Icon(Icons.camera_alt_outlined,
+                              color: Colors.blue),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            _buildEditableField("Name", _nameController, isTextFieldEnabled),
-            const SizedBox(height: 5),
-            _buildEditableField("Email", _emailController, isTextFieldEnabled),
-            const SizedBox(height: 5),
-            _buildEditableField("Current Academic Year",
-                _academicYearController, isTextFieldEnabled),
-            const SizedBox(height: 5),
-            _buildEditableField("Graduation Year", _graduationYearController,
-                isTextFieldEnabled),
-            const SizedBox(height: 5),
-            _buildEditableField(
-                "Preferences", _preferencesController, isTextFieldEnabled),
-            const SizedBox(height: 5),
-            _buildEditableField(
-                "Skills", _skillsController, isTextFieldEnabled),
-            const SizedBox(height: 20),
-            CustomButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Confirm Sign Out'),
-                      content: const Text('Are you sure you want to Sign Out?'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .pop(); // Close the dialog before signing out
-                            updateSignOut(context);
-                            moveToNextScreen(context, const LoginScreen());
-                          },
-                          child: const Text('Sign Out'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              text: 'Sign Out',
-            ),
-          ],
+              const SizedBox(height: 20),
+              _buildEditableField("Name", _nameController, isTextFieldEnabled),
+              const SizedBox(height: 5),
+              _buildEditableField("Email", _emailController, isTextFieldEnabled),
+              const SizedBox(height: 5),
+              _buildEditableField("Current Academic Year",
+                  _academicYearController, isTextFieldEnabled),
+              const SizedBox(height: 5),
+              _buildEditableField("Graduation Year", _graduationYearController,
+                  isTextFieldEnabled),
+              const SizedBox(height: 5),
+              _buildEditableField(
+                  "Preferences", _preferencesController, isTextFieldEnabled),
+              const SizedBox(height: 5),
+              _buildEditableField(
+                  "Skills", _skillsController, isTextFieldEnabled),
+              const SizedBox(height: 20),
+              CustomButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Confirm Sign Out'),
+                        content: const Text('Are you sure you want to Sign Out?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pop(); // Close the dialog before signing out
+                              updateSignOut(context);
+                              moveToNextScreen(context, const LoginScreen());
+                            },
+                            child: const Text('Sign Out'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                text: 'Sign Out',
+              ),
+            ],
+          ),
         ),
       ),
     );
