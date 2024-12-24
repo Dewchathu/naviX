@@ -1,0 +1,22 @@
+[
+  {
+    "year": 2,
+    "semester": 2,
+    "requiredCredit": 1
+  },
+  {
+    "year": 3,
+    "semester": 1,
+    "requiredCredit": 2
+  },
+  {
+    "year": 3,
+    "semester": 2,
+    "requiredCredit": 2
+  },
+  {
+    "year": 4,
+    "semester": 1,
+    "requiredCredit": 6
+  }
+]

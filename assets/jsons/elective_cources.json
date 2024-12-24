@@ -1,0 +1,170 @@
+[
+  {
+    "courseCode": "PST 22112",
+    "courseTitle": "Leadership and Communication",
+    "noOfCredits": 1,
+    "Year": 2,
+    "Semester": 2,
+    "curriculum": "Definition of leadership, power and leadership, importance of leadership, leadership qualities, leadership behaviours and approaches, different types of leaders, leadership in practice; definition of team and team work, building an effective team, stages of team building, different team roles, obstacles to team effectiveness; definition of communication, the communication process; effective listening skills, elements of an effective presentation, non-verbal communication, email etiquettes & phone etiquettes."
+  },
+  {
+    "courseCode": "PST 22114",
+    "courseTitle": "Soft Skill Development",
+    "noOfCredits": 1,
+    "Year": 2,
+    "Semester": 2,
+    "curriculum": "Listening to a talk and basic interpersonal skills, basics of giving a talk, preparing slides for a presentation, writing an article, conveying information, reading skills, debating, acting, how to have a conversation, how to face an interview, presenting an argument, “Political correctness”"
+  },
+  {
+    "courseCode": "PST 22215",
+    "courseTitle": "Mathematical Methods",
+    "noOfCredits": 2,
+    "Year": 2,
+    "Semester": 2,
+    "curriculum": "Complex Numbers: Introduction, Real and Imaginary Numbers, The Algebra of Complex numbers, Complex Number Operation, Polar form of the complex number. Matrices and determinants: Matrices and system of linear Equations, Operations with Matrices, Determinant of a Square Matrix, Inverse of a Square Matrix, Applications of Matrices and Determinants. Vectors: Vectors and Scalars, Vector Algebra, lineally independence and linearly independence, Vector Fields, Dot and Cross product, Reciprocal sets of Vectors, Vector differentiation, Gradient, Divergence, Vector integration. Fourier Series: Periodic functions, Function having arbitrary period, Even and odd functions, Half-range expression, Convergence of Fourier series, Operation on Fourier Series Fourier Transforms: Fourier’s integral theorem, Fourier cosine and sine transforms, Fourier transforms of derivatives, Calculation of the Fourier transforms of some simple functions, Fourier transforms of some rational functions Laplace Transforms: Inverse functions, Linearity, Laplace transforms of derivatives and integrals, Shifting on the s-axis ,Shifting on the t-axis, Unit step functions, Differentiation and Integration of the transforms."
+  },
+  {
+    "courseCode": "PST 22116",
+    "courseTitle": "Introduction to Astronomy",
+    "noOfCredits": 1,
+    "Year": 2,
+    "Semester": 2,
+    "curriculum": "Introduction about the difference in astronomy, cosmology, and astrophysics, Comprehensive study about the ancient astronomy, geocentric model, Copernicus \nheliocentric model, Tycho Brahe’s observations, Kepler and the orbits of planets, Gallio and telescope observation, Newton laws of motion, Newtonian gravity etc., Introduction to celestial sphere, Brief introduction about the Sun and its structure, planets and the solar system objects such as asteroids, comets etc, Natural astronomical phenomena such as solar eclipse, lunar eclipse, phases of moon, planetary conjunctions, oppositions etc., low and high tides, planetary conjunctions, planetary oppositions, planetary transits, meteorites and meteor showers"
+  },
+  {
+    "courseCode": "PST 31211",
+    "courseTitle": "Mathematical Programming",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 1,
+    "curriculum": "Constrained Optimization: Linear Programming (Introduction, Mathematical Modelling of Problems, Feasible Solution, Optimal (Optimum) Solution, Basic Feasible Solution, Basic Variables, Non-Degenerate Basic Feasible Solution, Degenerate Basic Feasible Solution, Convex Sets, Graphical Method, Simplex Methods, Development of Simplex Technique, Artificial Variables, Charne’s Method of Penalties, Problem of Degeneracy, Duality of Linear Programming, Interpretation and Properties of Dual), Integer Programming (Introduction, Method of Solution, Gomory’s Method of all Integer Programming Problem, Branch and Bound Method) Transportation Technique (Introduction, Mathematical Formulation, The initial Basic Feasible Solution, North\u0002West Corner Rule, Row Minima and Column Minima Method, Matrix Minima Method, Vogel’s Approximation Method, Optimal Basic Feasible Solution, Stepping Stone Method, Modi Method) Assignment Models (Introduction, Hungarian Method, Balanced and Unbalanced Assignment Problems), Unconstrained Optimization: Functions of One Variable (Derivatives, Maximum and Minimum, Binary Search, Convexity), Functions of Several Variables (Gradient, Maximum and Minimum, Global Optima)"
+  },
+  {
+    "courseCode": "PST 31212",
+    "courseTitle": "Numerical Methods",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 1,
+    "curriculum": "Errors in Computation (Representational error, Computational error – relative and absolute, Computer rounding approaches), Taylor Series representation of a function (Error term in the representation, Properties of alternating series, Appropriate and inappropriate applications), Finding Roots of Equations (Bisection method, Newton’s method, Secant method, Analysis of convergence for each technique), Interpolation (Lagrange’s interpolation, Newton’s form for the interpolating polynomial, Hermite Interpolation, Divided differences algorithm, Inverse interpolation, Errors in interpolation, Theorems regarding error, Derivatives and divided differences), Solution of Linear System of Equations (Gaussian elimination, Gauss-Seidel method, Jacobi method)"
+  },
+  {
+    "courseCode": "PST 31215",
+    "courseTitle": "Agile Software Development",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 1,
+    "curriculum": "Agile and Lean Software Development, Basics and Fundamentals: Values, principles, stakeholders, Lean Approach, Agile and Scrum Principles, Agile Product Management, Agile Requirements, Agile Architecture, Agile Risk Management, Agile Review, Agile Testing, Scaling Agile for large projects"
+  },
+  {
+    "courseCode": "PST 31230",
+    "courseTitle": "Social and Professional Issues in Computing",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 1,
+    "curriculum": "History of computing, social context of computing, methods and tools of analysis, \nprofessional and ethical responsibility, risks and liability of computer-based systems, \nintellectual property, privacy and civil liberties, computer crime, customs and law, \neconomical issues in computing, philosophical frameworks."
+  },
+  {
+    "courseCode": "PST 32109",
+    "courseTitle": "Human Resource Management",
+    "noOfCredits": 1,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Human resource management (HRM) and its environment, the importance of effective HRM, Strategic Human Resource Management (SHRM), HRM goals, HRM functions, Job designing, Job analysis, HR planning, Recruitment, Selection, Hiring and contract of employment, Orientation, Training and development, Performance appraisal, Reward management, Grievance handling, Disciplinary management, Labour manager relations, Termination of employment"
+  },
+  {
+    "courseCode": "PST 32210",
+    "courseTitle": "Statistics in Quality Control",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Introduction to Modern Quality Management and Improvement, Statistical Process \nControl, Control Charts: Control charts for Attributes (p-chart, c-chart, and u-chart), \nControl chart for variables (X-bar & R chart and X-bar & S chart), OC curve, and Process Capability Analysis. Acceptance Sampling Procedures: Single sampling plan for attributes, Double Sampling Plan for attributes, and Sequential Sampling by Variables. Quality Standards: ISO 9000 (QMS), ISO 14000 (EMS), 5S & KIZEN, TQM, Six Sigma and Lean, Introduction to Operations Research, Analysis the real world data by using statistical software and interpret the results, Group Research Assignment on Statistical Process Control"
+  },
+  {
+    "courseCode": "PST 32212",
+    "courseTitle": "Graph Theory",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Graphs and Digraphs (Graphs isomorphism, Subgraphs, Degrees, Indegrees, and outdegrees, Adjacency and Incidence matrices), Connectivity (Paths, Circuits and Cycles, Connected Graphs and Digraphs, trees and spanning trees, Eulerian and Hamiltonian Graphs), Optimization Involving Trees (Minimum weight spanning trees, Minimum weight branching, Matroids and the Greedy algorithm, Shortest path Problems, Flows and connectivity, Matching and Factors), Graph Embedding (Planer graph and duality, Hamiltonian plane graph), Colouring of Graphs (Vertex colouring, Edge colouring, colouring of planer graphs)"
+  },
+  {
+    "courseCode": "PST 32231",
+    "courseTitle": "Human Computer Interactions",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Foundation of HCI, Usability principles, building a simple GUI, Human abilities, human-centered software development, cultural aspects, human-centered software evaluation, GUI design, GUI programming, HCI aspects of multimedia systems, HCI aspects of collaboration and communication, validation of usability and user experience, Handling errors & help"
+  },
+  {
+    "courseCode": "PST 32232",
+    "courseTitle": "Bioinformatics",
+    "noOfCredits": 2,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Introduction to bioinformatics, Bioinformatics algorithms Basic concepts in Molecular Biology, Nucleic acids and Proteins, Bioinformatics Databases, Sequence alignment, Similarity searching, DNA sequence analysis and protein Sequence analysis, protein structure prediction, Genome bioinformatics, Applications of bioinformatics. Computational approaches to biological science concepts of bioinformatics the computational skills for problems solving in biology, Establish, and maintain research information in biology, Solutions to bioinformatics, software packages, usages, and development"
+  },
+  {
+    "courseCode": "PST 32133",
+    "courseTitle": "Current Topics in Computer Technology",
+    "noOfCredits": 1,
+    "Year": 3,
+    "Semester": 2,
+    "curriculum": "Current trends and demands in the field of Computer Science and technology. Topics like policies and laws in software industry, Software quality assurance, Design Patterns, Blockchain Technologies"
+  },
+  {
+    "courseCode": "PST 41203",
+    "courseTitle": "Robotics",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "General Introduction, Analog and Digital Circuits for Control Applications, Electronic Devices used in Robotics, Microprocessor/ Microcontroller & Interfacing, DC and Stepper Motors, Design of Mechatronics Systems, Sensors and Signal Processing, Power Electronics, Two wheel Driven Autonomous Robot Applications"
+  },
+  {
+    "courseCode": "PST 41215",
+    "courseTitle": "Industrial Management",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "Business Organization & the economical effective planning, Production Management, Production process planning & control, Industrial Engineering: plant management Inventory & warehouse management, marketing management"
+  },
+  {
+    "courseCode": "PST 41230",
+    "courseTitle": "Internet of Things (IoT)",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "Introduction to IoT: Defining IoT, Characteristics of IoT, Physical design of IoT, Logical design of IoT, Functional blocks of IoT, Communication models & APIs. IoT & M2M: Machine to Machine, Difference between IoT and M2M, Software define Network. Network & Communication aspects, Challenges in IoT Design challenges, Development challenges, Security challenges, other challenges. Components of an IoT Solution, Competing Standards for IoT, Domain specific applications of IoT: Home automation, Industry applications, Surveillance applications, Other IoT applications. Developing IoTs: Introduction to Python, Introduction to different IoT tools, developing applications through IoT tools, developing sensor based, application through embedded system platform, Implementing IoT, concepts with python"
+  },
+  {
+    "courseCode": "PST 41231",
+    "courseTitle": "Natural Language Processing",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "Introduction: Brief history of NLP research, some current applications, components of NLP systems. Linguistic Phenomena: Morphology, Parts of Speech, Syntax, Model\u0002Theoretic Semantics, Lexical Semantics, Pragmatics. Formal Representations: Finite State Automata, Context-Free Grammars, First Order Logic, Frame Semantics, Other Structures. Formal Methods: Hidden Markov Models, Sequence Classification, Syntactic Parsing, Forward Algorithm, Viterbi Algorithm, Rule-Based Systems, Statistical Classifiers. Prediction and part-of-speech tagging: Corpora, simple N-grams, word prediction, stochastic tagging, evaluating system performance. Interpretation: compositional semantics and entailment, pragmatic inference. Recent NLP research, Practical on sentiment analysis."
+  },
+  {
+    "courseCode": "PST 41233",
+    "courseTitle": "Business Process Management Systems",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "imulation in management decision making, Queuing theory, Concepts of discrete\u0002event simulation, Construction of models: modeling issues, verification and validation of models, development of simulation models using selected software, analysis of results"
+  },
+  {
+    "courseCode": "PST 41234",
+    "courseTitle": "Mobile Computing",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": "Introduction to Mobile Computing, Applications, Characteristics, Mobile computing architecture, Mobile networks: GSM, Mobile IP, Bluetooth, WiMAX, IPV6, Smart cards, Mobile Applications development"
+  },
+  {
+    "courseCode": "PST 41235",
+    "courseTitle": "Critical Thinking",
+    "noOfCredits": 2,
+    "Year": 4,
+    "Semester": 1,
+    "curriculum": ""
+  }
+]
