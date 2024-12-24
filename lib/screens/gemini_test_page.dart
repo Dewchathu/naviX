@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:navix/widgets/loading_indicator.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
@@ -15,23 +17,31 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
   final TextEditingController _selectedJobsController = TextEditingController();
 
   List<String> recommendedCourses = [];
-  Map<String, dynamic> jobSkillMapping = {};
-  Map<String, dynamic> courseData = {};
+  List<Map<String, dynamic>> electiveCourses = [];
+  Map<String, int> semesterCreditRequirements = {};
 
   @override
   void initState() {
     super.initState();
     _loadJsonFiles();
+    dotenv.load(fileName: ".env"); // Load environment variables
   }
 
   Future<void> _loadJsonFiles() async {
     try {
-      final jobSkillJson = await rootBundle.loadString('assets/job_skill_mapping.json');
-      final courseJson = await rootBundle.loadString('assets/courses.json');
+      final coursesJson =
+          await rootBundle.loadString('assets/jsons/elective_cources.json');
+      final creditsJson =
+          await rootBundle.loadString('assets/jsons/semester_credit.json');
 
       setState(() {
-        jobSkillMapping = json.decode(jobSkillJson);
-        courseData = json.decode(courseJson);
+        electiveCourses =
+            List<Map<String, dynamic>>.from(json.decode(coursesJson));
+
+        semesterCreditRequirements = {
+          for (var entry in json.decode(creditsJson))
+            "${entry['year']}-${entry['semester']}": entry['requiredCredit']
+        };
       });
     } catch (e) {
       debugPrint('Error loading JSON files: $e');
@@ -41,34 +51,43 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
   Future<void> _runElectiveSelector() async {
     loadingIndicator.show(context);
     try {
-      // Get selected jobs and preferences
-      List<String> selectedJobs =
-      _selectedJobsController.text.split(',').map((e) => e.trim()).toList();
-      List<String> preferences =
-      _preferencesController.text.split(',').map((e) => e.trim()).toList();
+      // Send the JSON data to Gemini
+      final gemini = Gemini.instance;
+      Candidates? response = await gemini.text(
+          '''
+          Using the given JSON data:
+            - details of elective courses:${json.encode(electiveCourses)}
+            - required credits per semester: ${json.encode(semesterCreditRequirements)}
+            
+            Select suitable elective courses for each semester such that the total credits match the required credits for that semester. 
+            Return the output as a dart Map where keys are "year-semester" and values are lists of selected courses and course code.
+          
+          ''',
+      );
 
-      // Generate recommended courses based on jobs and preferences
-      Set<String> skills = {};
-      for (var job in selectedJobs) {
-        if (jobSkillMapping.containsKey(job)) {
-          skills.addAll(jobSkillMapping[job]);
-        }
+      String? geminiResponse = response?.output;
+      debugPrint(
+          'Gemini response for Semester Course Selection: $geminiResponse');
+
+      if (geminiResponse != null) {
+        // Parse Gemini's response
+        Map<String, List<String>> selectedCourses =
+            Map<String, List<String>>.from(json.decode(geminiResponse));
+
+        debugPrint('----------------$selectedCourses');
+
+        // Display recommended courses for each semester
+        setState(() {
+          recommendedCourses = selectedCourses.entries
+              .map((entry) =>
+                  "${entry.key}: ${entry.value.map((course) => '- $course').join('\n')}")
+              .toList();
+        });
+      } else {
+        setState(() {
+          recommendedCourses = ["No recommendations available."];
+        });
       }
-
-      Set<String> matchingCourses = {};
-      for (var course in courseData.keys) {
-        List<dynamic> requiredSkills = courseData[course]['skills'];
-        if (preferences.any((pref) => courseData[course]['tags'].contains(pref)) &&
-            requiredSkills.every((skill) => skills.contains(skill))) {
-          matchingCourses.add(course);
-        }
-      }
-
-      setState(() {
-        recommendedCourses = matchingCourses.toList();
-      });
-
-      debugPrint('Recommended Courses: $recommendedCourses');
     } catch (e) {
       debugPrint('Error: $e');
     } finally {
@@ -123,9 +142,10 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
             ),
             recommendedCourses.isNotEmpty
                 ? Column(
-                children: recommendedCourses
-                    .map((course) => Text('- $course'))
-                    .toList())
+                    children: recommendedCourses
+                        .map((course) => Text(course))
+                        .toList(),
+                  )
                 : const Text('No data available'),
           ],
         ),

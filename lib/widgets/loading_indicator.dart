@@ -13,24 +13,19 @@ class loadingIndicator {
         width: double.infinity,
         height: double.infinity,
         child: Center(
-          child: Column(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10),
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10)
-                ),
-                child: const LoadingIndicator(
-                  indicatorType: Indicator.lineSpinFadeLoader,
-                  colors: [Colors.blue],
-                  strokeWidth: 1,
-                ),
-              ),
-              Text("")
-            ],
+          child: Container(
+            padding: EdgeInsets.all(10),
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10)
+            ),
+            child: const LoadingIndicator(
+              indicatorType: Indicator.lineSpinFadeLoader,
+              colors: [Colors.blue],
+              strokeWidth: 1,
+            ),
           ),
         ),
       ),
