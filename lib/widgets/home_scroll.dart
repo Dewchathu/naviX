@@ -11,12 +11,14 @@ class HomeScroll extends StatefulWidget {
 }
 
 class _HomeScrollState extends State<HomeScroll> {
-  late List<String> dailyVideoList;
+  List<String> dailyVideoList = [];
+  String weekTopic = '';
 
   @override
   void initState() {
     super.initState();
     dailyVideoList = (widget.user?.dailyVideoList as List<String>?) ?? [];
+    weekTopic = (widget.user?.email)!;
   }
 
   @override
@@ -34,9 +36,11 @@ class _HomeScrollState extends State<HomeScroll> {
                 decoration: BoxDecoration(
                     color: const Color(0xFF0F75BC),
                     borderRadius: BorderRadius.circular(20)),
-                child: Text('Week Focus Title',
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(weekTopic,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold
+                    ),
+                ),
               )
             ],
           ),
