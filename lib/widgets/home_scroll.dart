@@ -11,30 +11,52 @@ class HomeScroll extends StatefulWidget {
 }
 
 class _HomeScrollState extends State<HomeScroll> {
-  List<String> dailyVideoList = [];
+  late List<String> dailyVideoList;
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      dailyVideoList = (widget.user?.dailyVideoList as List<String>?) ?? [];
-    });
+    dailyVideoList = (widget.user?.dailyVideoList as List<String>?) ?? [];
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: dailyVideoList.length,
-      itemBuilder: (context, index) {
-        // ignore: unnecessary_null_comparison
-        if (dailyVideoList != null || dailyVideoList.isEmpty) {
-          return VideoTile(
-            videoUrl: dailyVideoList[index],
-          );
-        }
-        return const SizedBox
-            .shrink(); // Placeholder for unsupported content types
-      },
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.only(left: 15, right: 15),
+          child: Row(
+            children: [
+              Container(
+                height: 40,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: const Color(0xFF0F75BC),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Text('Week Focus Title',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              )
+            ],
+          ),
+        ),
+        Expanded(
+          // Properly constrain the ListView
+          child: dailyVideoList.isNotEmpty
+              ? ListView.builder(
+                  itemCount: dailyVideoList.length,
+                  itemBuilder: (context, index) {
+                    return VideoTile(
+                      videoUrl: dailyVideoList[index],
+                    );
+                  },
+                )
+              : const Center(
+                  child: Text('No videos available'),
+                ),
+        ),
+      ],
     );
   }
 }

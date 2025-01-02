@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/video_player_screen.dart';
 import 'package:http/http.dart' as http;
@@ -26,7 +27,6 @@ class _VideoTileState extends State<VideoTile> {
   bool isLoading = true;
   String youtubeApiKey = '';
 
-
   @override
   void initState() {
     super.initState();
@@ -41,8 +41,8 @@ class _VideoTileState extends State<VideoTile> {
 
     if (videoId != null) {
       final apiKey = youtubeApiKey;
-      final url =
-      Uri.parse('https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$videoId&key=$apiKey');
+      final url = Uri.parse(
+          'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$videoId&key=$apiKey');
 
       try {
         final response = await http.get(url);
@@ -55,6 +55,11 @@ class _VideoTileState extends State<VideoTile> {
             videoAuthor = snippet['channelTitle'] ?? 'Unknown Author';
             videoThumbnailUrl = snippet['thumbnails']['high']['url'] ?? '';
             isLoading = false;
+            // Initialize the YoutubePlayerController
+            _controller = YoutubePlayerController(
+              initialVideoId: videoId,
+              flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+            );
           });
         } else {
           throw Exception('Failed to load video details');
@@ -71,7 +76,7 @@ class _VideoTileState extends State<VideoTile> {
 
   @override
   void dispose() {
-    if (mounted) {
+    if (_controller != null) {
       _controller.dispose();
     }
     super.dispose();
@@ -88,23 +93,78 @@ class _VideoTileState extends State<VideoTile> {
           );
         }
       },
-      child: Column(
-        children: [
-          isLoading
-              ? const CircularProgressIndicator() // Show a loading indicator while fetching data
-              : Image.network(videoThumbnailUrl),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.red,
-              child: Text(
-                videoAuthor.isNotEmpty ? videoAuthor[0] : 'A',
-              ), // First letter of author
-            ),
-            title: Text(videoTitle),
-            subtitle: Text(videoAuthor),
+      child: isLoading
+          ? Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Container()
+      )
+          : Padding(
+        padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+        child: Container(
+          width: double.infinity,
+          height: 150,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 5,
+                  spreadRadius: 1,
+                  offset: Offset(3, 3)
+              ),
+            ],
           ),
-          const Divider(),
-        ],
+          padding: const EdgeInsets.only(left: 10),
+          child: Row(
+            children: [
+              Container(
+                height: 130,
+                width: 130,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    videoThumbnailUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      videoTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F75BC),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      videoAuthor,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

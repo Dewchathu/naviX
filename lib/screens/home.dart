@@ -125,10 +125,14 @@ class _HomeScreenState extends State<HomeScreen> {
         initialIndex:
             1, // Set this to 1 to open "Home" tab by default (0-based index)
         child: Scaffold(
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            title: SizedBox(
-              height: 35,
-              child: Image.asset('assets/images/logo_appbar.png'),
+            backgroundColor: Colors.white,
+            title: Center(
+              child: SizedBox(
+                height: 35,
+                child: Image.asset('assets/images/logo_appbar.png'),
+              ),
             ),
             automaticallyImplyLeading: false,
             actions: [
@@ -164,22 +168,31 @@ class _HomeScreenState extends State<HomeScreen> {
               Calender(user: user),
             ],
           ),
-          bottomNavigationBar: const TabBar(
-            tabs: <Widget>[
-              Tab(
-                icon: Icon(Icons.list_alt_rounded),
-                text: 'Info',
-              ),
-              Tab(
-                icon: Icon(Icons.home),
-                text: 'Home',
-              ),
-              Tab(
-                icon: Icon(Icons.calendar_month_rounded),
-                text: 'Calendar',
-              ),
-            ],
+          bottomNavigationBar: Container(
+            width: MediaQuery.of(context).size.width - 40,
+            height: 70,
+            color: const Color(0xFF0F75BC),
+            child: TabBar(
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor:Color(0xFF97D2FF),
+              tabs: const <Widget>[
+                Tab(
+                  icon: Icon(Icons.list_alt_rounded),
+                  text: 'Info',
+                ),
+                Tab(
+                  icon: Icon(Icons.home),
+                  text: 'Home',
+                ),
+                Tab(
+                  icon: Icon(Icons.calendar_month_rounded),
+                  text: 'Calendar',
+                ),
+              ],
+            ),
           ),
+
         ),
       ),
     );
