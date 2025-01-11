@@ -13,12 +13,13 @@ class HomeScroll extends StatefulWidget {
 class _HomeScrollState extends State<HomeScroll> {
   List<String> dailyVideoList = [];
   String weekTopic = '';
+  DateTime now = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     dailyVideoList = (widget.user?.dailyVideoList as List<String>?) ?? [];
-    weekTopic = (widget.user?.email)!;
+    weekTopic = (widget.user?.oneWeekList[now.weekday-1])!;
   }
 
   @override

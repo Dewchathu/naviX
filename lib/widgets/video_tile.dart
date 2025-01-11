@@ -24,6 +24,7 @@ class _VideoTileState extends State<VideoTile> {
   String videoTitle = 'Loading...';
   String videoAuthor = 'Loading...';
   String videoThumbnailUrl = 'Loading...';
+  String videoScript = 'No description available'; // This will be set later
   bool isLoading = true;
   String youtubeApiKey = '';
 
@@ -54,6 +55,7 @@ class _VideoTileState extends State<VideoTile> {
             videoTitle = snippet['title'] ?? 'Unknown Title';
             videoAuthor = snippet['channelTitle'] ?? 'Unknown Author';
             videoThumbnailUrl = snippet['thumbnails']['high']['url'] ?? '';
+            videoScript = snippet['description'] ?? 'No description available';
             isLoading = false;
             // Initialize the YoutubePlayerController
             _controller = YoutubePlayerController(
@@ -89,15 +91,16 @@ class _VideoTileState extends State<VideoTile> {
         if (!isLoading) {
           moveToNextScreen(
             context,
-            VideoPlayerScreen(videoUrl: widget.videoUrl, title: videoTitle),
+            VideoPlayerScreen(
+              videoUrl: widget.videoUrl,
+              title: videoTitle,
+              videoScript: videoScript, // Pass videoScript here
+            ),
           );
         }
       },
       child: isLoading
-          ? Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Container()
-      )
+          ? Container()
           : Padding(
         padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
         child: Container(
@@ -111,8 +114,7 @@ class _VideoTileState extends State<VideoTile> {
                   color: Colors.black12,
                   blurRadius: 5,
                   spreadRadius: 1,
-                  offset: Offset(3, 3)
-              ),
+                  offset: Offset(3, 3)),
             ],
           ),
           padding: const EdgeInsets.only(left: 10),

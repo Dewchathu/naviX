@@ -4,11 +4,13 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
   final String title;
+  final String videoScript; // Receive videoScript here
 
   const VideoPlayerScreen({
     Key? key,
     required this.videoUrl,
     required this.title,
+    required this.videoScript,
   }) : super(key: key);
 
   @override
@@ -18,6 +20,7 @@ class VideoPlayerScreen extends StatefulWidget {
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   late YoutubePlayerController _controller;
   bool _isPlayerReady = false;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -36,24 +39,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         enableCaption: true,
       ),
     )..addListener(_listener);
-
-   // _videoMetaData = const YoutubeMetaData();
-   // _playerState = PlayerState.unknown;
   }
 
   void _listener() {
     if (_isPlayerReady && mounted && !_controller.value.isFullScreen) {
       setState(() {
-       // _playerState = _controller.value.playerState;
-       // _videoMetaData = _controller.metadata;
+        _isFullScreen = _controller.value.isFullScreen;
       });
     }
-  }
-
-  @override
-  void deactivate() {
-    _controller.pause();
-    super.deactivate();
   }
 
   @override
@@ -67,18 +60,78 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+            ),
+            onPressed: () {
+              _controller.toggleFullScreenMode();
+            },
+          ),
+        ],
       ),
-      body: YoutubePlayer(
-        controller: _controller,
-        showVideoProgressIndicator: true,
-        progressIndicatorColor: Colors.blue,
-        progressColors: const ProgressBarColors(
-          playedColor: Colors.blue,
-          handleColor: Colors.blueAccent,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Youtube Player
+            YoutubePlayer(
+              controller: _controller,
+              showVideoProgressIndicator: true,
+              progressIndicatorColor: Colors.blue,
+              progressColors: const ProgressBarColors(
+                playedColor: Colors.blue,
+                handleColor: Colors.blueAccent,
+              ),
+              onReady: () {
+                _isPlayerReady = true;
+              },
+            ),
+
+            // Video Script Section
+            if (widget.videoScript.isNotEmpty)
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // // Video Script Content
+                      // Text(
+                      //   widget.videoScript,
+                      //   style: const TextStyle(
+                      //     fontSize: 14,
+                      //     fontWeight: FontWeight.w400,
+                      //     color: Colors.black87,
+                      //   ),
+                      //   textAlign: TextAlign.justify,
+                      // ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Video Description",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.videoScript,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black54,
+                        ),
+                        textAlign: TextAlign.justify,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
-        onReady: () {
-          _isPlayerReady = true;
-        },
       ),
     );
   }

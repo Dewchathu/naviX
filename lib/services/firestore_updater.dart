@@ -1,4 +1,3 @@
-import 'package:cron/cron.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,49 +17,78 @@ class FirestoreUpdater {
   DateTime now = DateTime.now();
 
   Future<void> updateFirestoreDocument() async {
-    // Load .env for YouTube API key
     await dotenv.load(fileName: ".env");
     youtubeApiKey = dotenv.env['YOUTUBE_API_KEY'] ?? '';
-    Map<String, dynamic>? userInfo =
-    await FirestoreService().getCurrentUserInfo();
+    Map<String, dynamic>? userInfo = await FirestoreService().getCurrentUserInfo();
     userId = (await FirestoreService().getCurrentUserId())!;
 
-    threeMonthList = userInfo?['threeMonthList'];
-    oneMonthList = userInfo?['oneMonthList'];
-    oneWeekList = userInfo?['oneWeekList'];
-    dailyVideoList = userInfo?['dailyVideoList'];
+    threeMonthList = (userInfo?['threeMonthList'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    oneMonthList = (userInfo?['oneMonthList'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    oneWeekList = (userInfo?['oneWeekList'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
+    dailyVideoList = (userInfo?['dailyVideoList'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
 
+    // Fetch timestamps from Firestore
+    DocumentSnapshot userDoc = await _firestore.collection('User').doc(userId).get();
+    Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
 
-    scheduleUpdates();
+    DateTime? lastDailyUpdate = (userData?['lastDailyUpdate'] as Timestamp?)?.toDate();
+    DateTime? lastWeeklyUpdate = (userData?['lastWeeklyUpdate'] as Timestamp?)?.toDate();
+    DateTime? lastMonthlyUpdate = (userData?['lastMonthlyUpdate'] as Timestamp?)?.toDate();
 
+    DateTime now = DateTime.now();
 
+    // Initialize timestamps if missing
+    if (lastDailyUpdate == null) lastDailyUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (lastWeeklyUpdate == null) lastWeeklyUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+    if (lastMonthlyUpdate == null) lastMonthlyUpdate = DateTime.fromMillisecondsSinceEpoch(0);
 
-    // List<String> threeMonthList = await fetchThreeMonthList();
-    // List<String> oneMonthList = threeMonthList.isNotEmpty
-    //     ? await fetchOneMonthList(threeMonthList.first)
-    //     : [];
-    // List<String> oneWeekList = oneMonthList.isNotEmpty
-    //     ? await fetchOneWeekList(oneMonthList.first)
-    //     : [];
-    // List<String> dailyVideoList = oneWeekList.isNotEmpty
-    //     ? await fetchYouTubeLinks(oneWeekList.first, youtubeApiKey)
-    //     : [];
+    bool isSameDay = lastDailyUpdate.year == now.year &&
+        lastDailyUpdate.month == now.month &&
+        lastDailyUpdate.day == now.day;
 
-    // Update Firestore document
-    await updateFirestore(threeMonthList, oneMonthList, oneWeekList, dailyVideoList);
-  }
+    bool isSameWeek = lastWeeklyUpdate.year == now.year &&
+        now.difference(lastWeeklyUpdate).inDays < 7;
 
-  Future<List<String>> fetchThreeMonthList() async {
-    try {
-      Candidates? response = await gemini.text(
-        "What are 3 key areas to learn for this user's jobs? Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
-      );
-      return extractListFromResponse(response?.output);
-    } catch (e) {
-      print('Error fetching Three-Month List: $e');
-      return [];
+    bool isSameMonth = lastMonthlyUpdate.year == now.year &&
+        lastMonthlyUpdate.month == now.month;
+
+    // Update dailyVideoList if not updated today
+    if (!isSameDay && oneWeekList.isNotEmpty) {
+      dailyVideoList = await fetchYouTubeLinks(oneWeekList[now.weekday - 1], youtubeApiKey);
+      await _firestore.collection('User').doc(userId).update({'lastDailyUpdate': Timestamp.fromDate(now)});
     }
+
+    // Update oneWeekList if not updated this week
+    if (!isSameWeek && oneMonthList.isNotEmpty) {
+      int weekOfMonth = ((now.day - 1) ~/ 7) + 1;
+      oneWeekList = await fetchOneWeekList(oneMonthList[weekOfMonth - 1]);
+      await _firestore.collection('User').doc(userId).update({'lastWeeklyUpdate': Timestamp.fromDate(now)});
+    }
+
+    // Update oneMonthList if not updated this month
+    if (!isSameMonth && threeMonthList.isNotEmpty) {
+      oneMonthList = await fetchOneMonthList(threeMonthList[(now.month - 1) % 3]);
+      await _firestore.collection('User').doc(userId).update({'lastMonthlyUpdate': Timestamp.fromDate(now)});
+    }
+
+    // Update Firestore document with lists
+    await updateFirestore(oneMonthList, oneWeekList, dailyVideoList);
+    print('Firestore updated successfully on app open!');
   }
+
+
+  //
+  // Future<List<String>> fetchThreeMonthList() async {
+  //   try {
+  //     Candidates? response = await gemini.text(
+  //       "What are 3 key areas to learn for this user's jobs? Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+  //     );
+  //     return extractListFromResponse(response?.output);
+  //   } catch (e) {
+  //     print('Error fetching Three-Month List: $e');
+  //     return [];
+  //   }
+  // }
 
   Future<List<String>> fetchOneMonthList(String topic) async {
     try {
@@ -94,7 +122,8 @@ class FirestoreUpdater {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['items']
-            .map<String>((item) => "https://www.youtube.com/watch?v=${item['id']['videoId']}")
+            .map<String>((
+            item) => "https://www.youtube.com/watch?v=${item['id']['videoId']}")
             .toList();
       } else {
         throw Exception('YouTube API error: ${response.statusCode}');
@@ -105,12 +134,13 @@ class FirestoreUpdater {
     }
   }
 
-  Future<void> updateFirestore(List<String> threeMonthList, List<String> oneMonthList,
+  Future<void> updateFirestore(
+      List<String> oneMonthList,
       List<String> oneWeekList, List<String> dailyVideoList) async {
     try {
-      final DocumentReference userDoc = _firestore.collection('users').doc(userId);
+      final DocumentReference userDoc = _firestore.collection('User').doc(
+          userId);
       await userDoc.update({
-        "threeMonthList": threeMonthList,
         "oneMonthList": oneMonthList,
         "oneWeekList": oneWeekList,
         "dailyVideoList": dailyVideoList,
@@ -128,39 +158,4 @@ class FirestoreUpdater {
     return matches.map((match) => match.group(1)!.trim()).toList();
   }
 
-  void scheduleUpdates() {
-    final cron = Cron();
-
-    // Schedule update every day at 12 AM
-    cron.schedule(Schedule.parse('1 36 * * *'), () async {
-      print('Updating Firestore at 12 AM');
-      int weekday = now.weekday;
-      await fetchYouTubeLinks( oneWeekList[weekday], youtubeApiKey);
-      //await fetchYouTubeLinks(topic, apiKey);
-    });
-
-    // Schedule update every Monday at 12 AM
-    cron.schedule(Schedule.parse('0 0 * * 1'), () async {
-      print('Updating Firestore every Monday');
-      await updateFirestoreData();
-    });
-
-    // Schedule update every 1st of the month at 12 AM
-    cron.schedule(Schedule.parse('0 0 1 * *'), () async {
-      print('Updating Firestore on the 1st of the month');
-      await updateFirestoreData();
-    });
-  }
-
-// Function to update Firestore
-  Future<void> updateFirestoreData() async {
-    // Your Firestore update logic here
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-    await users.doc('exampleDocId').update({
-      'field': 'new value',
-    });
-    print("Firestore data updated");
-  }
-
 }
-

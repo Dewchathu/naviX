@@ -89,6 +89,9 @@ class AuthService {
               "preferences": [],
               "skills": [],
               "profileUrl": userDetails.photoURL ?? "",
+              "lastDailyUpdate": DateTime.now(),
+              "lastWeeklyUpdate": DateTime.now(),
+              "lastMonthlyUpdate": DateTime.now(),
               "courseDetails": [
                 {
                   "courseCode": "PHY11211",

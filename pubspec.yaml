@@ -33,6 +33,7 @@ dependencies:
   home_widget: ^0.7.0
   random_color: ^1.0.5
   cron: ^0.6.1
+  percent_indicator: ^4.2.4
 
 
 dev_dependencies:

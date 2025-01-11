@@ -41,17 +41,17 @@ class _CalenderState extends State<Calender> {
 
     // Ensure the week starts on Monday at midnight
     tz.TZDateTime monday = tz.TZDateTime(tz.local, now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
+        .subtract(Duration(days: now.weekday));
 
     for (int i = 0; i < oneWeekList.length; i++) {
-      // Schedule task for each day at 7:00 AM explicitly
+      // Schedule task for each day at 7:00 PM
       tz.TZDateTime taskTime = tz.TZDateTime(
         tz.local,
         monday.year,
         monday.month,
         monday.day + i, // Add days for each task
-        21, // Hour
-        10, // Minute
+        23, // Hour (7 PM)
+        38, // Minute
         0, // Second
       );
 
@@ -66,19 +66,18 @@ class _CalenderState extends State<Calender> {
 
       appointments.add(appointment);
 
-      // Schedule notification for each appointment
+      // Schedule notification for each appointment at 7:00 PM
       notificationService.scheduleNotification(
         taskTime.hashCode, // Unique ID
         oneWeekList[i],
-        'Your task "${oneWeekList[i]}" is scheduled for $taskTime',
-        taskTime.subtract(const Duration(minutes: 2)),
+        'Your task "${oneWeekList[i]}" is scheduled for ${taskTime.hour}:${taskTime.minute}',
+        taskTime.subtract(const Duration(minutes: 2)), // Notify 2 minutes before
       );
     }
 
     // Update the state to refresh the calendar
     setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {

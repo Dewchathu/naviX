@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:navix/actions/move_to_next_sceen.dart';
-import 'package:navix/actions/update_signout.dart';
-import 'package:navix/screens/login_screen.dart';
-import 'package:navix/widgets/custom_button.dart';
-import 'package:navix/widgets/custom_image_picker.dart';
 import 'package:provider/provider.dart';
+import '../actions/move_to_next_sceen.dart';
+import '../actions/update_signout.dart';
 import '../providers/profile_provider.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import 'package:path/path.dart' as path_delegate;
+
+import '../widgets/custom_image_picker.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -24,13 +24,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _academicYearController = TextEditingController();
-  final TextEditingController _graduationYearController =
-      TextEditingController();
-  final TextEditingController _skillsController = TextEditingController();
-  final TextEditingController _preferencesController = TextEditingController();
-  bool isTextFieldEnabled = false;
-
   String profilePictureUrl = "";
 
   @override
@@ -42,174 +35,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserInfo() async {
     try {
       Map<String, dynamic>? userInfo =
-          await FirestoreService().getCurrentUserInfo();
+      await FirestoreService().getCurrentUserInfo();
       if (userInfo != null) {
         setState(() {
-          profilePictureUrl =
-              userInfo["profileUrl"] ?? "assets/images/profile_image.png";
+          profilePictureUrl = userInfo["profileUrl"] ?? "assets/images/profile_image.png";
           Provider.of<ProfileProvider>(context, listen: false)
               .updateProfilePicture(profilePictureUrl);
 
           _nameController.text = userInfo["name"] ?? "";
           _emailController.text = userInfo["email"] ?? "";
-          _academicYearController.text = userInfo["academicYear"] ?? "";
-          _graduationYearController.text = userInfo["graduationYear"] ?? "";
-          _skillsController.text =
-              (userInfo["skills"] as List<dynamic>?)?.join(", ") ?? "";
-          _preferencesController.text =
-              (userInfo["preferences"] as List<dynamic>?)?.join(", ") ?? "";
         });
       }
     } catch (e) {
       print("Error fetching user info: $e");
     }
-  }
-
-  Future<void> _saveUserInfo() async {
-    try {
-      await FirestoreService().updateUserInfo({
-        "username": _nameController.text,
-        "email": _emailController.text,
-        "academicYear": _academicYearController.text,
-        "graduationYear": _graduationYearController.text,
-        "skills":
-            _skillsController.text.split(',').map((e) => e.trim()).toList(),
-        "preferences": _preferencesController.text
-            .split(',')
-            .map((e) => e.trim())
-            .toList(),
-      });
-    } catch (e) {
-      print("Error saving user info: $e");
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Profile Section'),
-          actions: [
-            IconButton(
-              icon: Icon(isTextFieldEnabled ? Icons.lock_open : Icons.lock),
-              onPressed: () {
-                setState(() {
-                  isTextFieldEnabled = !isTextFieldEnabled;
-                });
-              },
-            ),
-            if (isTextFieldEnabled)
-              IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: _saveUserInfo,
-              ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              Center(
-                child: SizedBox(
-                  height: 200,
-                  width: 200,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    fit: StackFit.expand,
-                    children: [
-                      Consumer<ProfileProvider>(
-                        builder: (context, profileProvider, child) {
-                          return CircleAvatar(
-                            radius: 30,
-                            backgroundImage: profileProvider
-                                        .profilePictureUrl.isNotEmpty &&
-                                    Uri.tryParse(
-                                                profileProvider.profilePictureUrl)
-                                            ?.hasAbsolutePath ==
-                                        true
-                                ? NetworkImage(profileProvider.profilePictureUrl)
-                                : const AssetImage(
-                                        'assets/images/profile_image.png')
-                                    as ImageProvider,
-                          );
-                        },
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: -25,
-                        child: RawMaterialButton(
-                          onPressed: () {
-                            setState(() {
-                            showImageSourceDialog(context, _selectImage);
-                            });
-                          },
-                          elevation: 2.0,
-                          fillColor: const Color(0xFFF5F6F9),
-                          padding: const EdgeInsets.all(15.0),
-                          shape: const CircleBorder(),
-                          child: const Icon(Icons.camera_alt_outlined,
-                              color: Colors.blue),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildEditableField("Name", _nameController, isTextFieldEnabled),
-              const SizedBox(height: 5),
-              _buildEditableField("Email", _emailController, isTextFieldEnabled),
-              const SizedBox(height: 5),
-              _buildEditableField("Current Academic Year",
-                  _academicYearController, isTextFieldEnabled),
-              const SizedBox(height: 5),
-              _buildEditableField("Graduation Year", _graduationYearController,
-                  isTextFieldEnabled),
-              const SizedBox(height: 5),
-              _buildEditableField(
-                  "Preferences", _preferencesController, isTextFieldEnabled),
-              const SizedBox(height: 5),
-              _buildEditableField(
-                  "Skills", _skillsController, isTextFieldEnabled),
-              const SizedBox(height: 20),
-              CustomButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Confirm Sign Out'),
-                        content: const Text('Are you sure you want to Sign Out?'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .pop(); // Close the dialog before signing out
-                              updateSignOut(context);
-                              moveToNextScreen(context, const LoginScreen());
-                            },
-                            child: const Text('Sign Out'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                text: 'Sign Out',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Future<void> _selectImage(ImageSource source) async {
@@ -230,24 +69,148 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Provider.of<ProfileProvider>(context, listen: false)
               .updateProfilePicture(downloadUrl!);
         });
-        // Hide loading indicator, etc.
       }
     } catch (e) {
       debugPrint("Error selecting/updating image: $e");
     }
   }
 
-  Widget _buildEditableField(
-      String label, TextEditingController controller, bool isTextFieldEnabled) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: TextFormField(
-        enabled: isTextFieldEnabled,
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
+  Future<void> _signOut() async {
+    Navigator.of(context)
+        .pop(); // Close the dialog before signing out
+    updateSignOut(context);
+    moveToNextScreen(context, const LoginScreen());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEFEFEF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0F75BC),
+        title: const Text('Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        leading: IconButton(
+            onPressed:() {
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.arrow_back),
+            color: Colors.white
+        ),
+        actions: [
+      IconButton(
+      icon: const Icon(Icons.exit_to_app_rounded),
+      color: Colors.white,
+      onPressed: _signOut,
+    ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 30),
+            GestureDetector(
+              onTap: () {
+                showImageSourceDialog(context, _selectImage);
+              },
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: profilePictureUrl.isNotEmpty
+                    ? NetworkImage(profilePictureUrl)
+                    : const AssetImage('assets/images/profile_image.png')
+                as ImageProvider,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _nameController.text,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              _emailController.text,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildStatCard('100', 'Posted', Icons.upload_file),
+                _buildStatCard('7.8', 'Rank', Icons.star),
+                _buildStatCard('100', 'Saved', Icons.bookmark),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'About',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'A passionate UI/UX designer with a love for crafting meaningful digital experiences. Skilled in various tools including Adobe XD, Sketch, Figma, and more.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatCard(String value, String label, IconData icon) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundColor: const Color(0xFF0F75BC).withOpacity(0.2),
+          child: Icon(icon, color: const Color(0xFF0F75BC)),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.grey,
+          ),
+        ),
+      ],
     );
   }
 }
