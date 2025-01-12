@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 class ElectiveSelectorPage extends StatefulWidget {
-  const ElectiveSelectorPage({super.key});
+  const ElectiveSelectorPage({Key? key}) : super(key: key);
 
   @override
   State<ElectiveSelectorPage> createState() => _ElectiveSelectorPageState();
@@ -24,24 +24,26 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
   void initState() {
     super.initState();
     _loadJsonFiles();
-    dotenv.load(fileName: ".env"); // Load environment variables
   }
 
   Future<void> _loadJsonFiles() async {
     try {
       final coursesJson =
-          await rootBundle.loadString('assets/jsons/elective_cources.json');
+      await rootBundle.loadString('assets/jsons/elective_cources.json');
       final creditsJson =
-          await rootBundle.loadString('assets/jsons/semester_credit.json');
+      await rootBundle.loadString('assets/jsons/semester_credit.json');
 
       setState(() {
         electiveCourses =
-            List<Map<String, dynamic>>.from(json.decode(coursesJson));
+        List<Map<String, dynamic>>.from(json.decode(coursesJson));
 
         semesterCreditRequirements = {
           for (var entry in json.decode(creditsJson))
             "${entry['year']}-${entry['semester']}": entry['requiredCredit']
         };
+        //debugPrint('--------------------------: $electiveCourses');
+        //debugPrint('-----------------------: $semesterCreditRequirements');
+
       });
     } catch (e) {
       debugPrint('Error loading JSON files: $e');
@@ -51,42 +53,33 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
   Future<void> _runElectiveSelector() async {
     loadingIndicator.show(context);
     try {
-      // Send the JSON data to Gemini
       final gemini = Gemini.instance;
       Candidates? response = await gemini.text(
-          '''
-          Using the given JSON data:
-            - details of elective courses:${json.encode(electiveCourses)}
-            - required credits per semester: ${json.encode(semesterCreditRequirements)}
-            
-            Select suitable elective courses for each semester such that the total credits match the required credits for that semester. 
-            Return the output as a dart Map where keys are "year-semester" and values are lists of selected courses and course code.
+        '''
+        Using the given JSON data:
+          - details of elective courses: ${json.encode(electiveCourses)}
+          - required credits per semester: ${json.encode(semesterCreditRequirements)}
           
-          ''',
+        Select suitable elective courses for each semester such that the total credits match the required credits for that semester. 
+        give the only output as a Map List where keys are "year-semester" and values are lists of selected courses and course codes.
+        ''',
       );
 
       String? geminiResponse = response?.output;
-      debugPrint(
-          'Gemini response for Semester Course Selection: $geminiResponse');
+      debugPrint('Gemini response: $geminiResponse');
 
       if (geminiResponse != null) {
-        // Parse Gemini's response
         Map<String, List<String>> selectedCourses =
-            Map<String, List<String>>.from(json.decode(geminiResponse));
+        Map<String, List<String>>.from(json.decode(geminiResponse));
 
-        debugPrint('----------------$selectedCourses');
-
-        // Display recommended courses for each semester
         setState(() {
           recommendedCourses = selectedCourses.entries
               .map((entry) =>
-                  "${entry.key}: ${entry.value.map((course) => '- $course').join('\n')}")
+          "${entry.key}: ${entry.value.map((course) => '- $course').join('\n')}")
               .toList();
         });
       } else {
-        setState(() {
-          recommendedCourses = ["No recommendations available."];
-        });
+        debugPrint('No recommendations received from the server.');
       }
     } catch (e) {
       debugPrint('Error: $e');
@@ -95,11 +88,20 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Elective Selector Page'),
+        title: const Text('Elective Selector'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -142,11 +144,15 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
             ),
             recommendedCourses.isNotEmpty
                 ? Column(
-                    children: recommendedCourses
-                        .map((course) => Text(course))
-                        .toList(),
-                  )
-                : const Text('No data available'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: recommendedCourses
+                  .map((course) => Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(course),
+              ))
+                  .toList(),
+            )
+                : const Text('No recommendations available.'),
           ],
         ),
       ),

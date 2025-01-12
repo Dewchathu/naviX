@@ -3,7 +3,6 @@ import 'package:navix/models/user_info.dart';
 import 'package:navix/services/notification_service.dart';
 import 'package:random_color/random_color.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class Calender extends StatefulWidget {
@@ -24,9 +23,6 @@ class _CalenderState extends State<Calender> {
   @override
   void initState() {
     super.initState();
-    // Initialize timezone for Colombo
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Colombo'));
     if (widget.user != null) {
       initDate = widget.user!.initDate;
       oneWeekList = widget.user!.oneWeekList;
@@ -36,25 +32,17 @@ class _CalenderState extends State<Calender> {
   }
 
   void _scheduleWeeklyTasks() {
-    // Get current time in Colombo timezone
-    tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-
-    // Ensure the week starts on Monday at midnight
-    tz.TZDateTime monday = tz.TZDateTime(tz.local, now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday));
+    DateTime now = DateTime.now();
+    DateTime monday = now
+        .subtract(Duration(days: now.weekday - 1))
+        .copyWith(hour: 0, minute: 0, second: 0);
 
     for (int i = 0; i < oneWeekList.length; i++) {
-      // Schedule task for each day at 7:00 PM
-      tz.TZDateTime taskTime = tz.TZDateTime(
-        tz.local,
-        monday.year,
-        monday.month,
-        monday.day + i, // Add days for each task
-        23, // Hour (7 PM)
-        38, // Minute
-        0, // Second
-      );
+      DateTime taskTime = monday
+          .add(Duration(days: i))
+          .copyWith(hour: 19, minute: 0, second: 0);
 
+      // Add the task as an appointment
       Appointment appointment = Appointment(
         startTime: taskTime,
         endTime: taskTime.add(const Duration(minutes: 60)),
@@ -63,20 +51,29 @@ class _CalenderState extends State<Calender> {
           colorBrightness: ColorBrightness.random,
         ),
       );
-
       appointments.add(appointment);
 
-      // Schedule notification for each appointment at 7:00 PM
-      notificationService.scheduleNotification(
-        taskTime.hashCode, // Unique ID
-        oneWeekList[i],
-        'Your task "${oneWeekList[i]}" is scheduled for ${taskTime.hour}:${taskTime.minute}',
-        taskTime.subtract(const Duration(minutes: 2)), // Notify 2 minutes before
-      );
+      // Only schedule notifications for today's task
+      if (taskTime.day == now.day && taskTime.month == now.month && taskTime.year == now.year) {
+        tz.TZDateTime scheduledTime =
+        _convertToTZDateTime(taskTime.subtract(const Duration(minutes: 2)));
+
+        notificationService.scheduleNotification(
+          taskTime.hashCode,
+          oneWeekList[i],
+          'Your task "${oneWeekList[i]}" is scheduled for ${taskTime.hour}:${taskTime.minute}',
+          scheduledTime,
+        );
+      }
     }
 
-    // Update the state to refresh the calendar
     setState(() {});
+  }
+
+
+  tz.TZDateTime _convertToTZDateTime(DateTime dateTime) {
+    final location = tz.getLocation('Asia/Colombo'); // Set your desired timezone
+    return tz.TZDateTime.from(dateTime, location);
   }
 
   @override
@@ -95,5 +92,29 @@ class _CalenderState extends State<Calender> {
 class _AppointmentDataSource extends CalendarDataSource {
   _AppointmentDataSource(List<Appointment> source) {
     appointments = source;
+  }
+}
+
+extension DateTimeCopyWith on DateTime {
+  DateTime copyWith({
+    int? year,
+    int? month,
+    int? day,
+    int? hour,
+    int? minute,
+    int? second,
+    int? millisecond,
+    int? microsecond,
+  }) {
+    return DateTime(
+      year ?? this.year,
+      month ?? this.month,
+      day ?? this.day,
+      hour ?? this.hour,
+      minute ?? this.minute,
+      second ?? this.second,
+      millisecond ?? this.millisecond,
+      microsecond ?? this.microsecond,
+    );
   }
 }
