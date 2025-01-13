@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/screens/login_screen.dart';
@@ -16,46 +19,145 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  double _progress = 0.0;
+  double progress = 0.0;
+  bool _isConnected = false;
+  late StreamSubscription<InternetStatus> _internetStatusSubscription;
+  String message = '';
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
+    _listenToInternetStatus();
+  }
+
+  @override
+  void dispose() {
+    _internetStatusSubscription.cancel();
+    removeCustomSnackBar();
+    super.dispose();
+  }
+
+  void updateProgressAndMessage(double progressValue, String newMessage) {
+    setState(() {
+      progress = progressValue;
+      message = newMessage;
+    });
   }
 
   Future<void> _initializeApp() async {
-    // Update progress
-    setState(() {
-      _progress = 0.2; // Start progress
-    });
+    // Prevent re-initialization if already running
+    if (!_isConnected) {
+      updateProgressAndMessage(0.0, 'Waiting for internet connection...');
+      return;
+    }
 
-    // Perform Firestore updates (only if user is logged in)
+    updateProgressAndMessage(0.4, 'Internet connected! Preparing app...');
+
     FirestoreUpdater updater = FirestoreUpdater();
-
     bool isLogged = await SharedPreferenceService.getBool("isLogged") ?? false;
 
     if (isLogged) {
+      updateProgressAndMessage(0.6, 'Updating data from server...');
       await updater.updateFirestoreDocument();
-      setState(() {
-        _progress = 0.8; // Firestore updates complete
-      });
     } else {
-      setState(() {
-        _progress = 0.5; // Indicate that the user is not logged in
-      });
+      updateProgressAndMessage(0.5, 'Loading default data...');
     }
 
-    // Simulate a delay to handle UI smoothness
     await Future.delayed(const Duration(seconds: 1));
 
-    // Navigate to the appropriate screen
     if (isLogged) {
-      await FirestoreService().getCurrentUserInfo(); // Fetch user info if logged in
+      updateProgressAndMessage(1.0, 'Welcome back!');
+      await FirestoreService().getCurrentUserInfo();
       moveToNextScreen(context, const HomeScreen());
     } else {
-      moveToNextScreen(context, const LoginScreen()); // Redirect to Login screen
+      updateProgressAndMessage(1.0, 'Welcome to NaviX!');
+      moveToNextScreen(context, const LoginScreen());
     }
+  }
+
+  void _listenToInternetStatus() {
+    _internetStatusSubscription =
+        InternetConnection().onStatusChange.listen((InternetStatus status) {
+      switch (status) {
+        case InternetStatus.connected:
+          if (!_isConnected) {
+            showConnectivitySnackBar(context, true);
+            setState(() => _isConnected = true);
+            _initializeApp();
+          }
+          break;
+        case InternetStatus.disconnected:
+          if (_isConnected) {
+            showConnectivitySnackBar(context, false);
+            setState(() {
+              _isConnected = false;
+              message = 'No internet connection. Please reconnect.';
+            });
+          }
+          break;
+      }
+    });
+  }
+
+  void showConnectivitySnackBar(BuildContext context, bool isConnected) {
+    final IconData iconData = isConnected ? Icons.wifi : Icons.wifi_off;
+    final color = isConnected ? Colors.green : const Color(0xFFC6293C);
+    final text =
+        isConnected ? 'Connected to internet!' : 'No internet connection.';
+
+    removeCustomSnackBar();
+    _overlayEntry = _createOverlayEntry(iconData, text, color);
+    Overlay.of(context).insert(_overlayEntry!);
+
+    if (isConnected) {
+      Future.delayed(const Duration(seconds: 3), () {
+        removeCustomSnackBar();
+      });
+    }
+  }
+
+  void removeCustomSnackBar() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry(IconData icon, String text, Color color) {
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top +
+            kToolbarHeight +
+            8, // Adjust as needed
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(text, style: const TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -69,25 +171,36 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            const Spacer(),
             SizedBox(
               width: 200,
               child: Image.asset('assets/images/logo_white.png'),
             ),
-            const SizedBox(height: 20), // Add some spacing
+            const SizedBox(height: 20),
             SizedBox(
-              width: 200, // Match the width of the logo container
+              width: 200,
               child: LinearPercentIndicator(
                 lineHeight: 5.0,
-                percent: _progress,
-                center: Text(
-                  "${(_progress * 100).toStringAsFixed(1)}%",
-                  style: const TextStyle(fontSize: 12.0, color: Colors.white),
-                ),
+                percent: progress,
                 barRadius: const Radius.circular(20),
                 backgroundColor: Colors.grey.withOpacity(0.4),
                 progressColor: Colors.white,
               ),
             ),
+            const SizedBox(height: 20),
+            Text(
+              message,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const Spacer(),
+            const Text('For Computer Science Undergraduates in PST',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white)
+            ),
+            const SizedBox(height: 10)
           ],
         ),
       ),
