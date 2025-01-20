@@ -12,6 +12,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
 import '../widgets/custom_password_form_field.dart';
 import '../widgets/info_messages.dart';
+import '../widgets/show_back_dialog.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -19,7 +20,16 @@ class SignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) {
+          return; // If the pop was already handled, exit early
+        }
+        final bool shouldPop = await showBackDialog(context) ?? false;
+        if (context.mounted && shouldPop) {
+          Navigator.pop(context); // Pop the current screen if allowed
+        }
+      },
       child: Scaffold(
         body: Container(
           width: double.infinity,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/gemini_test_page.dart';
+import 'package:navix/screens/notification_test.dart';
 import 'package:navix/widgets/custom_button.dart';
 import '../models/user_info.dart';
 
@@ -94,6 +95,12 @@ class _IntroScrollState extends State<IntroScroll> {
                 moveToNextScreen(context, const ElectiveSelectorPage());
               },
             ),
+            ElevatedButton(
+                onPressed: () {
+                  moveToNextScreen(context, NotificationTestPage());
+                },
+                child: Text('press')
+            )
           ],
         ),
       ),

@@ -40,7 +40,7 @@ class _CalenderState extends State<Calender> {
     for (int i = 0; i < oneWeekList.length; i++) {
       DateTime taskTime = monday
           .add(Duration(days: i))
-          .copyWith(hour: 19, minute: 0, second: 0);
+          .copyWith(hour: 19, minute: 0 , second: 0);
 
       // Add the task as an appointment
       Appointment appointment = Appointment(

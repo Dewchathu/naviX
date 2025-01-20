@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -115,15 +116,24 @@ class FirestoreUpdater {
   }
 
   Future<List<String>> fetchYouTubeLinks(String topic, String apiKey) async {
+    // Get the current year and construct the 'publishedAfter' parameter
+    final now = DateTime.now();
+    final startOfYear = DateTime(now.year - 1 , 1, 1).toUtc().toIso8601String();
+    debugPrint(startOfYear);
+
     final url = Uri.parse(
-        "https://www.googleapis.com/youtube/v3/search?part=snippet&q=$topic&type=video&maxResults=5&key=$apiKey");
+      "https://www.googleapis.com/youtube/v3/search"
+          "?part=snippet&q=$topic&type=video&maxResults=5&key=$apiKey&publishedAfter=$startOfYear",
+    );
+
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['items']
-            .map<String>((
-            item) => "https://www.youtube.com/watch?v=${item['id']['videoId']}")
+            .map<String>(
+              (item) => "https://www.youtube.com/watch?v=${item['id']['videoId']}",
+        )
             .toList();
       } else {
         throw Exception('YouTube API error: ${response.statusCode}');

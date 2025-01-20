@@ -1,3 +1,4 @@
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -19,6 +20,11 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
     );
+
+    // Request notification permissions for Android 13+
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
   }
 
   Future<void> scheduleNotification(
@@ -34,9 +40,9 @@ class NotificationService {
       scheduledDate,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'your_channel_id',
-          'your_channel_name',
-          channelDescription: 'your_channel_description',
+          'dew_channel_id',
+          'dew_channel_name',
+          channelDescription: 'dew_channel_description',
           importance: Importance.max,
           priority: Priority.high,
         ),

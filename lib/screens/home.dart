@@ -11,6 +11,7 @@ import '../models/user_info.dart';
 import '../providers/profile_provider.dart';
 import '../services/firestore_service.dart';
 import '../widgets/info_scroll.dart';
+import '../widgets/show_back_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,51 +74,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<bool?> _showBackDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Are you sure?'),
-          content: const Text(
-            'Are you sure you want to Quit?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Close'),
-              onPressed: () {
-                SystemNavigator.pop();
-              },
-            ),
-            TextButton(
-              style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-              ),
-              child: const Text('Yes'),
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope<Object>(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
-          return;
+          return; // If the pop was already handled, exit early
         }
-        final bool shouldPop = await _showBackDialog() ?? false;
+        final bool shouldPop = await showBackDialog(context) ?? false;
         if (context.mounted && shouldPop) {
-          Navigator.pop(context);
+          Navigator.pop(context); // Pop the current screen if allowed
         }
       },
       child: DefaultTabController(
