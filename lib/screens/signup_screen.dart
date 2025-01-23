@@ -107,18 +107,7 @@ class _SignupFormState extends State<SignupForm> {
             "lastDailyUpdate": DateTime.now(),
             "lastWeeklyUpdate": DateTime.now(),
             "lastMonthlyUpdate": DateTime.now(),
-            "courseDetails": [
-              {
-                "courseCode": "PHY11211",
-                "courseName": "Physics",
-                "semester": "1st Year 2nd Semester"
-              },
-              {
-                "courseCode": "CHE11210",
-                "courseName": "Chemistry",
-                "semester": "1st Year 2nd Semester"
-              }
-            ],
+            "courseDetails": [],
             "threeMonthList": [],
             "oneMonthList": [],
             "oneWeekList": [],

@@ -12,6 +12,7 @@ Future<Map<String, List<String>>> setupProcess(
   List<String> oneWeekList = [];
   List<String> dailyVideoList = [];
   final gemini = Gemini.instance;
+  DateTime now = DateTime.now();
 
   // Load .env for YouTube API key
   await dotenv.load(fileName: ".env");
@@ -37,8 +38,11 @@ Future<Map<String, List<String>>> setupProcess(
   // Step 2: Process One-Month List for the first topic
   if (threeMonthList.isNotEmpty) {
     String topic = threeMonthList.first;
+    int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    int weeksInMonth = (daysInMonth / 7).ceil();
+
     Candidates? subtopicsResponse = await gemini.text(
-      "Provide 4 subtopics without description under the topic '$topic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+      "Provide $weeksInMonth subtopics without description under the topic '$topic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
     );
 
     print('Gemini response for One-Month List: ${subtopicsResponse?.output}');
@@ -56,8 +60,9 @@ Future<Map<String, List<String>>> setupProcess(
   // Step 3: Process One-Week List for the first subtopic
   if (oneMonthList.isNotEmpty) {
     String subtopic = oneMonthList.first;
+    String topic = threeMonthList[(now.month - 1) % 3];
     Candidates? subSubcategoriesResponse = await gemini.text(
-      "Provide 7 subcategories under the subtopic '$subtopic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+      "Provide 7 subcategories under the subtopic '$subtopic' with '$subtopic related to '$topic'. Give the answer in plain text and without description. ex: 1. '$topic' '$subtopic' Bloc, 2. '$topic' '$subtopic' Streamer, 3. '$topic' '$subtopic' Stateful",
     );
 
     print('Gemini response for One-Week List: ${subSubcategoriesResponse?.output}');
@@ -75,7 +80,8 @@ Future<Map<String, List<String>>> setupProcess(
   // Step 4: Generate Daily Video Links for the first topic of the One-Week List
   if (oneWeekList.isNotEmpty) {
     String dailyTopic = oneWeekList.first;
-    dailyVideoList = await fetchYouTubeLinks(dailyTopic, youtubeApiKey);
+    int weekOfMonth = ((now.day - 1) ~/ 7) + 1;
+    dailyVideoList = await fetchYouTubeLinks(dailyTopic, youtubeApiKey, oneMonthList[weekOfMonth - 1]);
   }
 
   print('Daily Video List: $dailyVideoList');
@@ -90,9 +96,14 @@ Future<Map<String, List<String>>> setupProcess(
 }
 
 // Function to fetch YouTube links
-Future<List<String>> fetchYouTubeLinks(String topic, String apiKey) async {
+Future<List<String>> fetchYouTubeLinks(String topic, String apiKey,String mainTopic) async {
+  final now = DateTime.now();
+  String newTopic = '$mainTopic $topic';
+  final startOfYear = DateTime(now.year - 1 , 1, 1).toUtc().toIso8601String();
   final url = Uri.parse(
-      "https://www.googleapis.com/youtube/v3/search?part=snippet&q=$topic&type=video&maxResults=5&key=$apiKey");
+      "https://www.googleapis.com/youtube/v3/search"
+          "?part=snippet&q=$newTopic&type=video&maxResults=5&key=$apiKey&publishedAfter=$startOfYear"
+  );
 
   final response = await http.get(url);
 

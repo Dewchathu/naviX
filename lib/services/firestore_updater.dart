@@ -53,24 +53,34 @@ class FirestoreUpdater {
     bool isSameMonth = lastMonthlyUpdate.year == now.year &&
         lastMonthlyUpdate.month == now.month;
 
-    // Update dailyVideoList if not updated today
-    if (!isSameDay && oneWeekList.isNotEmpty) {
-      dailyVideoList = await fetchYouTubeLinks(oneWeekList[now.weekday - 1], youtubeApiKey);
-      await _firestore.collection('User').doc(userId).update({'lastDailyUpdate': Timestamp.fromDate(now)});
+
+    // Update oneMonthList if not updated this month
+    if (!isSameMonth && threeMonthList.isNotEmpty) {
+      // Calculate the number of weeks in the current month
+      int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+      int weeksInMonth = (daysInMonth / 7).ceil();
+
+      oneMonthList = await fetchOneMonthList(threeMonthList[(now.month - 1) % 3], weeksInMonth);
+      await _firestore.collection('User').doc(userId).update({'lastMonthlyUpdate': Timestamp.fromDate(now)});
     }
+
 
     // Update oneWeekList if not updated this week
     if (!isSameWeek && oneMonthList.isNotEmpty) {
       int weekOfMonth = ((now.day - 1) ~/ 7) + 1;
-      oneWeekList = await fetchOneWeekList(oneMonthList[weekOfMonth - 1]);
+      oneWeekList = await fetchOneWeekList(oneMonthList[weekOfMonth - 1], threeMonthList[(now.month - 1) % 3]);
       await _firestore.collection('User').doc(userId).update({'lastWeeklyUpdate': Timestamp.fromDate(now)});
     }
 
-    // Update oneMonthList if not updated this month
-    if (!isSameMonth && threeMonthList.isNotEmpty) {
-      oneMonthList = await fetchOneMonthList(threeMonthList[(now.month - 1) % 3]);
-      await _firestore.collection('User').doc(userId).update({'lastMonthlyUpdate': Timestamp.fromDate(now)});
+
+    // Update dailyVideoList if not updated today
+    if (!isSameDay && oneWeekList.isNotEmpty) {
+      int weekOfMonth = ((now.day - 1) ~/ 7) + 1;
+      dailyVideoList = await fetchYouTubeLinks(oneWeekList[now.weekday - 1], youtubeApiKey, oneMonthList[weekOfMonth - 1]);
+      await _firestore.collection('User').doc(userId).update({'lastDailyUpdate': Timestamp.fromDate(now)});
     }
+
+
 
     // Update Firestore document with lists
     await updateFirestore(oneMonthList, oneWeekList, dailyVideoList);
@@ -91,10 +101,10 @@ class FirestoreUpdater {
   //   }
   // }
 
-  Future<List<String>> fetchOneMonthList(String topic) async {
+  Future<List<String>> fetchOneMonthList(String topic, int weekCount) async {
     try {
       Candidates? response = await gemini.text(
-        "Provide 4 subtopics under the topic '$topic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+        "Provide $weekCount subtopics under the topic '$topic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
       );
       return extractListFromResponse(response?.output);
     } catch (e) {
@@ -103,10 +113,10 @@ class FirestoreUpdater {
     }
   }
 
-  Future<List<String>> fetchOneWeekList(String subtopic) async {
+  Future<List<String>> fetchOneWeekList(String subtopic, String topic) async {
     try {
       Candidates? response = await gemini.text(
-        "Provide 7 subcategories under the subtopic '$subtopic'. Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+        "Provide 7 subcategories under the subtopic '$subtopic' with '$subtopic related to '$topic'. Give the answer in plain text and without description. ex: 1. '$topic' '$subtopic' Bloc, 2. '$topic' '$subtopic' Streamer, 3. '$topic' '$subtopic' Stateful",
       );
       return extractListFromResponse(response?.output);
     } catch (e) {
@@ -115,15 +125,16 @@ class FirestoreUpdater {
     }
   }
 
-  Future<List<String>> fetchYouTubeLinks(String topic, String apiKey) async {
+  Future<List<String>> fetchYouTubeLinks(String topic, String apiKey, String mainTopic) async {
     // Get the current year and construct the 'publishedAfter' parameter
     final now = DateTime.now();
     final startOfYear = DateTime(now.year - 1 , 1, 1).toUtc().toIso8601String();
     debugPrint(startOfYear);
+    String newTopic = '$mainTopic $topic';
 
     final url = Uri.parse(
       "https://www.googleapis.com/youtube/v3/search"
-          "?part=snippet&q=$topic&type=video&maxResults=5&key=$apiKey&publishedAfter=$startOfYear",
+          "?part=snippet&q=$newTopic&type=video&maxResults=5&key=$apiKey&publishedAfter=$startOfYear",
     );
 
     try {

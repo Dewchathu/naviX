@@ -24,7 +24,7 @@ class _VideoTileState extends State<VideoTile> {
   String videoTitle = 'Loading...';
   String videoAuthor = 'Loading...';
   String videoThumbnailUrl = 'Loading...';
-  String videoScript = 'No description available'; // This will be set later
+  String videoScript = 'No description available';
   bool isLoading = true;
   String youtubeApiKey = '';
 
@@ -102,7 +102,7 @@ class _VideoTileState extends State<VideoTile> {
       child: isLoading
           ? Container()
           : Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+        padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
         child: Container(
           width: double.infinity,
           height: 150,

@@ -23,14 +23,6 @@ class _CustomFormFieldState extends State<CustomFormField> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 3,
-            blurRadius: 5,
-            offset: const Offset(3, 3), // changes position of shadow
-          ),
-        ],
       ),
       child: TextFormField(
         controller: widget.controller,
@@ -44,11 +36,11 @@ class _CustomFormFieldState extends State<CustomFormField> {
           fillColor: const Color(0xFFFFFFFF),
           contentPadding: const EdgeInsets.all(14.0),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
+            borderSide: const BorderSide(color:Color(0xFF0092FF)),
             borderRadius: BorderRadius.circular(10.0),
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white),
+            borderSide: const BorderSide(color: Color(0xFF0F75BC)),
             borderRadius: BorderRadius.circular(10.0),
           ),
           errorBorder: OutlineInputBorder(

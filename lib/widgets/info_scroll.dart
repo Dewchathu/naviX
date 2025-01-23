@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
-import 'package:navix/screens/gemini_test_page.dart';
-import 'package:navix/screens/notification_test.dart';
+import 'package:navix/screens/onboard_screen.dart';
 import 'package:navix/widgets/custom_button.dart';
 import '../models/user_info.dart';
 
@@ -18,6 +17,8 @@ class _IntroScrollState extends State<IntroScroll> {
   String preferences = "";
   String jobList = "";
   String reqSkills = "";
+  List<Map<String, dynamic>> semesters = [];
+
 
   @override
   void initState() {
@@ -26,81 +27,35 @@ class _IntroScrollState extends State<IntroScroll> {
     preferences =
         (widget.user?.preferences as List<dynamic>?)?.join(", ") ?? "";
     jobList = (widget.user?.jobList as List<dynamic>?)?.join(", ") ?? "";
-  }
-
-  List<TableRow> _buildCourseRows() {
-    if (widget.user?.courseDetails == null ||
-        widget.user!.courseDetails.isEmpty) {
-      return [
-        const TableRow(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('No Course Details Available',
-                  textAlign: TextAlign.center),
-            ),
-          ],
-        ),
-      ];
-    }
-
-    return widget.user!.courseDetails.map<TableRow>((course) {
-      // Ensure default values are provided if any field is missing
-      String semester = course['semester'] ?? 'N/A';
-      String courseName = course['courseName'] ?? 'N/A';
-      String courseCode = course['courseCode'] ?? 'N/A';
-
-      return TableRow(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(semester),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(courseName),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Text(courseCode),
-          ),
-        ],
-      );
-    }).toList();
+    semesters = widget.user?.courseDetails ?? [];
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16), // Add padding for cleaner look
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle('Skills'),
-            _buildInfoCard(skills),
+            _buildChips(skills),
             const SizedBox(height: 20),
             _buildSectionTitle('Preferences'),
-            _buildInfoCard(preferences),
+            _buildChips(preferences),
             const SizedBox(height: 20),
             _buildSectionTitle('Job List'),
-            _buildInfoCard(jobList),
+            _buildChips(jobList),
             const SizedBox(height: 20),
             _buildSectionTitle('Elective Subjects'),
-            _buildTable(),
+            _buildCourseDetails(),
             const SizedBox(height: 30),
             CustomButton(
               text: 'Get Started',
               onPressed: () {
-                moveToNextScreen(context, const ElectiveSelectorPage());
+                moveToNextScreen(context, const OnBoardScreen());
               },
             ),
-            ElevatedButton(
-                onPressed: () {
-                  moveToNextScreen(context, NotificationTestPage());
-                },
-                child: Text('press')
-            )
           ],
         ),
       ),
@@ -118,19 +73,107 @@ class _IntroScrollState extends State<IntroScroll> {
     );
   }
 
+  Widget _buildCourseDetails() {
+
+    if (semesters.isEmpty) {
+      return _buildInfoCard("No course details available.");
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var semester in semesters)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (semester["semester"] != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    "Semester: ${semester["semester"]}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              if (semester["courses"] != null)
+                ...List.generate(
+                  (semester["courses"] as List).length,
+                      (index) {
+                    var course = semester["courses"][index];
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.only(bottom: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              course["code"] ?? "No Code",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F75BC),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              course["name"] ?? "No Name",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+
+
+  Widget _buildChips(String info) {
+    List<String> items = info.isNotEmpty ? info.split(", ") : [];
+    return Wrap(
+      spacing: 8.0, // Horizontal space between chips
+      runSpacing: 4.0, // Vertical space between lines of chips
+      children: items.map((item) {
+        return Chip(
+          label: Text(item),
+          backgroundColor: Colors.white,
+          labelStyle: const TextStyle(color: Colors.grey),
+          side: const BorderSide(
+            color: Color(0xFF0F75BC),
+            width: 1,
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildInfoCard(String info) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            spreadRadius: 2,
-          ),
-        ],
+        border: Border.all(
+          color: const Color(0xFF0F75BC),
+          width: 1,
+        ),
       ),
       child: Text(
         info.isNotEmpty ? info : 'No Information Available',
@@ -141,55 +184,6 @@ class _IntroScrollState extends State<IntroScroll> {
         ),
         textAlign: TextAlign.justify,
       ),
-    );
-  }
-
-  Widget _buildTable() {
-    return Table(
-      border: TableBorder.all(color: Colors.black12),
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      columnWidths: const {
-        0: FlexColumnWidth(2),
-        1: FlexColumnWidth(3),
-        2: FlexColumnWidth(2),
-      },
-      children: [
-        const TableRow(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Semester',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Course Name',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(
-                'Course Code',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
-          ],
-        ),
-        ..._buildCourseRows(),
-      ],
     );
   }
 }

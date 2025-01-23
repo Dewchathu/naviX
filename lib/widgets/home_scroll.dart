@@ -33,6 +33,7 @@ class _HomeScrollState extends State<HomeScroll> {
             children: [
               Container(
                 height: 40,
+                margin: EdgeInsets.only(bottom: 15),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                     color: const Color(0xFF0F75BC),

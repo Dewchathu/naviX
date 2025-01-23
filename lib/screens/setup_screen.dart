@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
@@ -17,9 +20,6 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen> {
-  final TextEditingController _academicYearController = TextEditingController();
-  final TextEditingController _graduationYearController =
-  TextEditingController();
   final TextEditingController _preferencesController = TextEditingController();
   final TextEditingController _skillsController = TextEditingController();
   final gemini = Gemini.instance;
@@ -30,15 +30,42 @@ class _SetupScreenState extends State<SetupScreen> {
   List<String> oneMonthList = [];
   List<String> oneWeekList = [];
   List<String> dailyVideoList = [];
+  List<Map<String, dynamic>> electiveCourses = [];
+  Map<String, int> semesterCreditRequirements = {};
+  List<Map<String, dynamic>> recommendedCourses = [];
+
+  String? selectedAcademicYear;
+  String? selectedGraduationYear;
+
+  List<String> academicYears = ['1.1', '1.2', '2.1', '2.2', '3.1', '3.2'];
+  List<String> graduationYears = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadJsonFiles();
+    _generateGraduationYears();
+  }
+
+  List<String> _generateGraduationYears() {
+    int currentYear = DateTime.now().year;
+    // Generate the next 5 years
+    for (int i = 0; i < 5; i++) {
+      graduationYears.add((currentYear + i).toString());
+    }
+
+    return graduationYears;
+  }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       child: Scaffold(
+        backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(60.0),
             child: !isSubmit ? _aboutUser() : _jobList(),
           ),
         ),
@@ -51,26 +78,64 @@ class _SetupScreenState extends State<SetupScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 40),
-        const Center(
-          child: Text(
-            'About You',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F75BC),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                  //color: const Color(0xFF0F75BC),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0F75BC), Color.fromARGB(
+                        255, 87, 186, 255)],
+                  ),
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Icon(
+                Icons.person,
+                size: 60,
+                color: Colors.white,
+              ),
             ),
-          ),
+            const SizedBox(height: 10),
+            const Text(
+              'About You...',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F75BC),
+              ),
+            ),
+            const Text(
+              'Tell us about you',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF636363),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
-        _buildInputField(
+        const SizedBox(height: 10),
+        _buildDropdownField(
           title: 'What is your current academic year?*',
-          controller: _academicYearController,
-          hintText: 'Enter your academic year, Ex: 1.2',
+          value: selectedAcademicYear,
+          items: academicYears,
+          onChanged: (value) {
+            setState(() {
+              selectedAcademicYear = value;
+            });
+          },
         ),
-        _buildInputField(
+        _buildDropdownField(
           title: 'What is your graduation year?*',
-          controller: _graduationYearController,
-          hintText: 'Enter your graduation year',
+          value: selectedGraduationYear,
+          items: graduationYears,
+          onChanged: (value) {
+            setState(() {
+              selectedGraduationYear = value;
+            });
+          },
         ),
         _buildInputField(
           title: 'What are your preferences?*',
@@ -93,22 +158,19 @@ class _SetupScreenState extends State<SetupScreen> {
               loadingIndicator.show(context);
               gemini
                   .text(
-                  "${_preferencesController.text} are my preferences, and ${_skillsController.text} are my skills. What are some job titles related to computer science that align with these preferences and skills? Provide the answer as a list."
-              )
+                      "${_preferencesController.text} are my preferences, and ${_skillsController.text} are my skills. What are some job titles related to computer science that align with these preferences and skills? Provide the answer as a list.")
                   .then((value) {
                 if (value?.output != null) {
                   // Split by newline and remove the leading numbers using regex
                   if (value?.output != null) {
                     jobList = value!.output!
                         .split('\n') // Split by newlines
-                        .map((job) => job
-                        .replaceAll('*', '')
-                        .replaceAll('-', '')
-                        .trim())
+                        .map((job) =>
+                            job.replaceAll('*', '').replaceAll('-', '').trim())
                         .where((job) =>
-                    job.isNotEmpty &&
-                        !job.contains(
-                            ':')) // Remove empty entries and titles with colon
+                            job.isNotEmpty &&
+                            !job.contains(
+                                ':')) // Remove empty entries and titles with colon
                         .toList();
                   }
                 }
@@ -122,17 +184,76 @@ class _SetupScreenState extends State<SetupScreen> {
                 debugPrint(e);
               });
             },
-            text: 'Submit',
+            text: 'Next',
           ),
         ),
       ],
     );
-
   }
 
-
-
-
+  Widget _buildDropdownField({
+    required String title,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: value,
+            decoration: InputDecoration(
+              hintText: 'Select your option',
+              hintStyle: const TextStyle(color: Colors.grey),
+              filled: true,
+              fillColor: const Color(0xFFFFFFFF),
+              contentPadding: const EdgeInsets.all(14.0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0F75BC),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFF0092FF)),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Color(0xFF0F75BC)),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            onChanged: onChanged,
+            items: items.map((String item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
+          )
+        ],
+      ),
+    );
+  }
 
   Widget _jobList() {
     return Column(
@@ -152,7 +273,6 @@ class _SetupScreenState extends State<SetupScreen> {
         const SizedBox(height: 20),
         const Text('Please select 3 jobs that suit you'),
         const SizedBox(height: 20),
-
         Wrap(
           spacing: 12.0,
           runSpacing: 12.0,
@@ -184,15 +304,22 @@ class _SetupScreenState extends State<SetupScreen> {
 
                 // Step 2: Save Data to Firebase
                 await FirestoreService().updateUserInfo({
-                  "academicYear": _academicYearController.text,
-                  "graduationYear": _graduationYearController.text,
-                  "skills": _skillsController.text.split(',').map((e) => e.trim()).toList(),
-                  "preferences": _preferencesController.text.split(',').map((e) => e.trim()).toList(),
+                  "academicYear": selectedAcademicYear,
+                  "graduationYear": selectedGraduationYear,
+                  "skills": _skillsController.text
+                      .split(',')
+                      .map((e) => e.trim())
+                      .toList(),
+                  "preferences": _preferencesController.text
+                      .split(',')
+                      .map((e) => e.trim())
+                      .toList(),
                   "jobList": selectedJobs,
                   "threeMonthList": threeMonthList,
                   "oneMonthList": oneMonthList,
                   "oneWeekList": oneWeekList,
                   "dailyVideoList": dailyVideoList,
+                  "courseDetails": recommendedCourses
                 });
 
                 moveToNextScreen(context, const HomeScreen());
@@ -237,7 +364,6 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-
   Widget _buildSelectableCard(String job, bool isSelected) {
     return IntrinsicWidth(
       child: Container(
@@ -274,16 +400,18 @@ class _SetupScreenState extends State<SetupScreen> {
       // Get selected jobs and skills
       String skills = _skillsController.text;
 
+      await runElectiveSelector();
+
       // Call the method from `setupProcess.dart`
       await setupProcess(selectedJobs, skills).then((value) => {
-        setState(() {
-          threeMonthList = value['threeMonthList'] ?? [];
-          oneMonthList = value['oneMonthList'] ?? [];
-          oneWeekList = value['oneWeekList'] ?? [];
-          dailyVideoList = value['dailyVideoList'] ?? [];
-        }),
-        debugPrint('Results: $value')
-      });
+            setState(() {
+              threeMonthList = value['threeMonthList'] ?? [];
+              oneMonthList = value['oneMonthList'] ?? [];
+              oneWeekList = value['oneWeekList'] ?? [];
+              dailyVideoList = value['dailyVideoList'] ?? [];
+            }),
+            debugPrint('Results: $value')
+          });
 
       debugPrint('Three-Month List: $threeMonthList');
       debugPrint('One-Month List: $oneMonthList');
@@ -291,9 +419,99 @@ class _SetupScreenState extends State<SetupScreen> {
       debugPrint('Daily Video List: $dailyVideoList');
     } catch (e) {
       debugPrint('Error: $e');
-    } finally {
-      loadingIndicator.dismiss();
+    }
+  }
+
+  Future<void> loadJsonFiles() async {
+    try {
+      final coursesJson =
+          await rootBundle.loadString('assets/jsons/elective_cources.json');
+      final creditsJson =
+          await rootBundle.loadString('assets/jsons/semester_credit.json');
+
+      setState(() {
+        electiveCourses =
+            List<Map<String, dynamic>>.from(json.decode(coursesJson));
+
+        semesterCreditRequirements = {
+          for (var entry in json.decode(creditsJson))
+            "${entry['year']}-${entry['semester']}": entry['requiredCredit']
+        };
+        //debugPrint('--------------------------: $electiveCourses');
+        //debugPrint('-----------------------: $semesterCreditRequirements');
+      });
+    } catch (e) {
+      debugPrint('Error loading JSON files: $e');
+    }
+  }
+
+  Future<void> runElectiveSelector() async {
+    loadingIndicator.show(context);
+    try {
+      final gemini = Gemini.instance;
+      Candidates? response = await gemini.text(
+        '''
+  Using the given JSON data:
+    - details of elective courses: ${json.encode(electiveCourses)}
+    - required credits per semester: ${json.encode(semesterCreditRequirements)}
+    
+  Select suitable elective courses for each semester considering 
+    - **preferences:** ${_preferencesController.text} 
+    - **future jobs:** ${selectedJobs} 
+    - **credit requirements** 
+  such that the total credits match the required credits for that semester. 
+  
+  **Prioritize courses that are relevant to the specified preferences and future jobs.** 
+
+  give the only answer as a Map List where keys are "year-semester" and values are lists of selected courses and course codes.
+  ex: structure should like this
+  {"2-2":{"PST 22215":"Mathematical Methods","PST 22112":"Leadership and Communication"},"3-1":{"PST 31230": "Social and Professional Issues in Computing","PST 31211": "Mathematical Programming"},"3-2":{"PST 32232": "Bioinformatics","PST 32210": "Statistics in Quality Control"},"4-1":{"PST 41231": "Natural Language Processing","PST 41215": "Industrial Management","PST 41234": "Mobile Computing"}}
+  ''',
+      );
+
+      String? geminiResponse = response?.output;
+      debugPrint('Gemini response: $geminiResponse');
+
+      if (geminiResponse != null) {
+        // Clean the response string
+        String cleanedResponse = geminiResponse
+            .replaceAll('\n', '')
+            .replaceAll('\r', '')
+            .trim();
+
+        debugPrint('Cleaned Response: $cleanedResponse');
+
+        setState(() {
+          try {
+            // Decode the cleaned JSON
+            Map<String, dynamic> responseCourses = json.decode(cleanedResponse);
+
+            // Parse the JSON
+            responseCourses.forEach((semester, courses) {
+              if (courses is Map<String, dynamic>) {
+                Map<String, dynamic> semesterData = {
+                  "semester": semester,
+                  "courses": courses.entries
+                      .map((entry) => {
+                    "code": entry.key,
+                    "name": entry.value.toString(),
+                  })
+                      .toList(),
+                };
+                recommendedCourses.add(semesterData);
+              }
+            });
+
+            debugPrint('Recommended Courses: $recommendedCourses');
+          } catch (e) {
+            debugPrint('Error decoding response: $e');
+          }
+        });
+      } else {
+        debugPrint('No recommendations received from the server.');
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
     }
   }
 }
-

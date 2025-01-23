@@ -16,31 +16,37 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: buttonColor ?? Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
+    double width = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: width,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: buttonColor ?? const Color(0xFF0F75BC),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        textStyle: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        child: isLoading
+            ? const SizedBox(
+          height: 30,
+          width: 30,
+          child: LoadingIndicator(
+            indicatorType: Indicator.circleStrokeSpin,
+            colors: [Colors.white],
+            strokeWidth: 2,
+          ),
+        )
+            : Text(text),
       ),
-      child: isLoading
-          ? const SizedBox(
-              height: 30,
-              width: 30,
-              child: LoadingIndicator(
-                indicatorType: Indicator.circleStrokeSpin,
-                colors: [Colors.white],
-                strokeWidth: 2,
-              ),
-            )
-          : Text(text),
     );
+
   }
 }

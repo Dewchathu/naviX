@@ -7,6 +7,8 @@ class loadingIndicator {
   static void show(BuildContext context) {
     if (_overlayEntry != null) return;
 
+    FocusScope.of(context).unfocus();
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Container(
         color: Colors.black.withOpacity(0.3),

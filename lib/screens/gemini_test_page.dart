@@ -56,27 +56,61 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
       final gemini = Gemini.instance;
       Candidates? response = await gemini.text(
         '''
-        Using the given JSON data:
-          - details of elective courses: ${json.encode(electiveCourses)}
-          - required credits per semester: ${json.encode(semesterCreditRequirements)}
-          
-        Select suitable elective courses for each semester such that the total credits match the required credits for that semester. 
-        give the only output as a Map List where keys are "year-semester" and values are lists of selected courses and course codes.
-        ''',
+  Using the given JSON data:
+    - details of elective courses: ${json.encode(electiveCourses)}
+    - required credits per semester: ${json.encode(semesterCreditRequirements)}
+    
+  Select suitable elective courses for each semester considering 
+    - **preferences:** ${_preferencesController.text} 
+    - **future jobs:** ${_selectedJobsController.text} 
+    - **credit requirements** 
+  such that the total credits match the required credits for that semester. 
+  
+  **Prioritize courses that are relevant to the specified preferences and future jobs.** 
+
+  give the only answer as a Map List where keys are "year-semester" and values are lists of selected courses and course codes.
+  ex: structure should like this
+  {
+  "2-2": {
+    "PST 22215": "Mathematical Methods",
+    "PST 22112": "Leadership and Communication"
+  },
+  "3-1": {
+    "PST 31230": "Social and Professional Issues in Computing",
+    "PST 31211": "Mathematical Programming"
+  },
+  "3-2": {
+    "PST 32232": "Bioinformatics",
+    "PST 32210": "Statistics in Quality Control"
+  },
+  "4-1": {
+    "PST 41231": "Natural Language Processing",
+    "PST 41215": "Industrial Management",
+    "PST 41234": "Mobile Computing"
+  }
+}
+  ''',
       );
 
       String? geminiResponse = response?.output;
       debugPrint('Gemini response: $geminiResponse');
 
       if (geminiResponse != null) {
-        Map<String, List<String>> selectedCourses =
-        Map<String, List<String>>.from(json.decode(geminiResponse));
+        // Decode the response and handle dynamic value types
+        Map<String, dynamic> selectedCourses =
+        Map<String, dynamic>.from(json.decode(geminiResponse));
 
         setState(() {
-          recommendedCourses = selectedCourses.entries
-              .map((entry) =>
-          "${entry.key}: ${entry.value.map((course) => '- $course').join('\n')}")
-              .toList();
+          // Transform the nested map into a displayable list of strings
+          recommendedCourses = selectedCourses.entries.map((entry) {
+            String yearSemester = entry.key;
+            String courses = (entry.value as Map<String, dynamic>)
+                .entries
+                .map((courseEntry) =>
+            "${courseEntry.key}: ${courseEntry.value}")
+                .join('\n');
+            return "$yearSemester:\n$courses";
+          }).toList();
         });
       } else {
         debugPrint('No recommendations received from the server.');
@@ -87,6 +121,8 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
       loadingIndicator.dismiss();
     }
   }
+
+
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -148,11 +184,15 @@ class _ElectiveSelectorPageState extends State<ElectiveSelectorPage> {
               children: recommendedCourses
                   .map((course) => Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text(course),
+                child: Text(
+                  course,
+                  style: const TextStyle(fontSize: 16),
+                ),
               ))
                   .toList(),
             )
                 : const Text('No recommendations available.'),
+
           ],
         ),
       ),
