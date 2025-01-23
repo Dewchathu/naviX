@@ -5,6 +5,7 @@ import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/profile_screen.dart';
 import 'package:navix/widgets/calender.dart';
 import 'package:navix/widgets/home_scroll.dart';
+import 'package:navix/widgets/leader_board.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user_info.dart';
@@ -65,7 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 [],
             dailyVideoList: List<String>.from(userInfo["dailyVideoList"] ?? []),
             initDate: DateTime.parse(userInfo["initDate"].toDate().toString()),
-            oneWeekList: List<String>.from(userInfo["oneWeekList"] ?? [])
+            oneWeekList: List<String>.from(userInfo["oneWeekList"] ?? []),
+            dailyStreak: userInfo["dailyStreak"] ?? 0,
+            score: userInfo["score"] ?? 0,
+            lastActiveDate: DateTime.parse(userInfo["initDate"].toDate().toString()),
+
           );
         });
       }
@@ -88,13 +93,13 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: DefaultTabController(
-        length: 3,
+        length: 4,
         initialIndex:
-            1, // Set this to 1 to open "Home" tab by default (0-based index)
+            1,
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFE0F1FF),
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFE0F1FF),
             title: Center(
               child: SizedBox(
                 height: 35,
@@ -132,29 +137,30 @@ class _HomeScreenState extends State<HomeScreen> {
             children: <Widget>[
               IntroScroll(user: user),
               user != null? HomeScroll(user: user) : const SizedBox.shrink(),
-              Calender(user: user),
+              Calendar(user: user),
+              Leaderboard()
             ],
           ),
           bottomNavigationBar: Container(
             width: MediaQuery.of(context).size.width - 40,
             height: 70,
             color: const Color(0xFF0F75BC),
-            child: TabBar(
+            child: const TabBar(
               indicatorColor: Colors.white,
               labelColor: Colors.white,
               unselectedLabelColor:Color(0xFF97D2FF),
-              tabs: const <Widget>[
+              tabs: <Widget>[
                 Tab(
                   icon: Icon(Icons.list_alt_rounded),
-                  text: 'Info',
                 ),
                 Tab(
                   icon: Icon(Icons.home),
-                  text: 'Home',
                 ),
                 Tab(
                   icon: Icon(Icons.calendar_month_rounded),
-                  text: 'Calendar',
+                ),
+                Tab(
+                  icon: Icon(Icons.wine_bar),
                 ),
               ],
             ),

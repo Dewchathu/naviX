@@ -20,6 +20,7 @@ class _IntroScrollState extends State<IntroScroll> {
   List<Map<String, dynamic>> semesters = [];
 
 
+
   @override
   void initState() {
     super.initState();
@@ -32,12 +33,49 @@ class _IntroScrollState extends State<IntroScroll> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              width: width,
+              height: 150,
+              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+              decoration: BoxDecoration(
+                //color: const Color(0xFF0F75BC),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0F75BC), Color.fromARGB(
+                        255, 87, 186, 255)],
+                  ),
+                  borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Hey ${widget.user?.name} 👋',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                        '"Take a small step today, and it will definitely be the beginning of a great journey."',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontStyle: FontStyle.italic
+                      ),
+                    )
+                  ],
+                )
+            ),
+            const SizedBox(height: 20),
             _buildSectionTitle('Skills'),
             _buildChips(skills),
             const SizedBox(height: 20),
@@ -48,6 +86,7 @@ class _IntroScrollState extends State<IntroScroll> {
             _buildChips(jobList),
             const SizedBox(height: 20),
             _buildSectionTitle('Elective Subjects'),
+            const SizedBox(height: 10),
             _buildCourseDetails(),
             const SizedBox(height: 30),
             CustomButton(
@@ -68,7 +107,7 @@ class _IntroScrollState extends State<IntroScroll> {
       style: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF0F75BC),
+        color: Colors.black,
       ),
     );
   }
@@ -94,7 +133,7 @@ class _IntroScrollState extends State<IntroScroll> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Color(0xFF0F75BC),
                     ),
                   ),
                 ),
@@ -103,26 +142,33 @@ class _IntroScrollState extends State<IntroScroll> {
                   (semester["courses"] as List).length,
                       (index) {
                     var course = semester["courses"][index];
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
+                            Container(
+                              color: const Color(0xFFE3F2FD),
+                              padding: const EdgeInsets.all(8.0),
+                              child: const Icon(
+                                Icons.check_circle_outline_rounded,
+                                color: Color(0xFFFF7400),
+                                size: 24.0,
+                              ),
+                            ),
                             Text(
                               course["code"] ?? "No Code",
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F75BC),
+                                color: Colors.black,
                               ),
-                            ),
-                            const SizedBox(height: 8),
+                            )
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(width: 50),
                             Text(
                               course["name"] ?? "No Name",
                               style: const TextStyle(
@@ -132,7 +178,8 @@ class _IntroScrollState extends State<IntroScroll> {
                             ),
                           ],
                         ),
-                      ),
+
+                      ],
                     );
                   },
                 ),
@@ -145,22 +192,34 @@ class _IntroScrollState extends State<IntroScroll> {
 
   Widget _buildChips(String info) {
     List<String> items = info.isNotEmpty ? info.split(", ") : [];
+    if (info.isEmpty) {
+      return _buildInfoCard("No information available.");
+    }
     return Wrap(
-      spacing: 8.0, // Horizontal space between chips
-      runSpacing: 4.0, // Vertical space between lines of chips
+      spacing: 8.0,
+      runSpacing: 4.0,
       children: items.map((item) {
         return Chip(
-          label: Text(item),
+          label: Text(_capitalizeWords(item),),
           backgroundColor: Colors.white,
           labelStyle: const TextStyle(color: Colors.grey),
           side: const BorderSide(
-            color: Color(0xFF0F75BC),
+            color: Colors.white,
             width: 1,
           ),
           padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
         );
       }).toList(),
     );
+  }
+
+  String _capitalizeWords(String text) {
+    return text
+        .split(" ")
+        .map((word) => word.isNotEmpty
+        ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+        : word)
+        .join(" ");
   }
 
   Widget _buildInfoCard(String info) {

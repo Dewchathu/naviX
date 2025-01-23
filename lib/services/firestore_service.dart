@@ -54,9 +54,30 @@ class FirestoreService {
       showToast('Request Denied: $e');
     }
   }
-
   // Method to get the current user ID
   Future<String?> getCurrentUserId() async {
     return await AuthService().getCurrentUserId();
   }
 }
+
+//get all user info
+Stream<List<Map<String, dynamic>>> fetchAllUsers() {
+  return FirebaseFirestore.instance
+      .collection('User') // Use the appropriate collection
+      .snapshots() // This stream listens for changes
+      .map((snapshot) {
+    return snapshot.docs.map((doc) {
+      return {
+        "id": doc.id,
+        "name": doc["name"],
+        "score": doc["score"],
+        "dailyStreak": doc["dailyStreak"],
+        "profileUrl": doc["profileUrl"]
+      };
+    }).toList();
+  });
+}
+
+
+
+

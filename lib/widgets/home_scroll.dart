@@ -55,6 +55,7 @@ class _HomeScrollState extends State<HomeScroll> {
                   itemBuilder: (context, index) {
                     return VideoTile(
                       videoUrl: dailyVideoList[index],
+                      score: widget.user!.score,
                     );
                   },
                 )

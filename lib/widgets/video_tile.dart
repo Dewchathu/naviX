@@ -9,10 +9,12 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoTile extends StatefulWidget {
   final String videoUrl;
+  final int score;
 
   const VideoTile({
     Key? key,
     required this.videoUrl,
+    required this.score,
   }) : super(key: key);
 
   @override
@@ -94,7 +96,8 @@ class _VideoTileState extends State<VideoTile> {
             VideoPlayerScreen(
               videoUrl: widget.videoUrl,
               title: videoTitle,
-              videoScript: videoScript, // Pass videoScript here
+              videoScript: videoScript,
+              score: widget.score,
             ),
           );
         }

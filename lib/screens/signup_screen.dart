@@ -113,6 +113,9 @@ class _SignupFormState extends State<SignupForm> {
             "oneWeekList": [],
             "dailyVideoList": [],
             "initDate": DateTime.now(),
+            "score": 0,
+            "dailyStreak": 0,
+            "lastActiveDate": null,
           }).then((value) {
             setState(() {
               isLoading = true;

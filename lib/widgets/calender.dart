@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:navix/models/user_info.dart';
 import 'package:navix/services/notification_service.dart';
-import 'package:random_color/random_color.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:timezone/timezone.dart' as tz;
 
-class Calender extends StatefulWidget {
+class Calendar extends StatefulWidget {
   final UserInfo? user;
-  const Calender({super.key, required this.user});
+  const Calendar({super.key, required this.user});
 
   @override
-  State<Calender> createState() => _CalenderState();
+  State<Calendar> createState() => _CalendarState();
 }
 
-class _CalenderState extends State<Calender> {
+class _CalendarState extends State<Calendar> {
   DateTime initDate = DateTime.now();
   final NotificationService notificationService = NotificationService();
   List<Appointment> appointments = [];
   List<String> oneWeekList = [];
-  RandomColor _randomColor = RandomColor();
 
   @override
   void initState() {
@@ -40,51 +37,79 @@ class _CalenderState extends State<Calender> {
     for (int i = 0; i < oneWeekList.length; i++) {
       DateTime taskTime = monday
           .add(Duration(days: i))
-          .copyWith(hour: 19, minute: 0 , second: 0);
+          .copyWith(hour: 19, minute: 0, second: 0);
+
+      // Assign color based on streak
+      Color taskColor = const Color(0xFF0F75BC);
 
       // Add the task as an appointment
       Appointment appointment = Appointment(
         startTime: taskTime,
         endTime: taskTime.add(const Duration(minutes: 60)),
         subject: oneWeekList[i],
-        color: _randomColor.randomColor(
-          colorBrightness: ColorBrightness.random,
-        ),
+        color: taskColor,
       );
       appointments.add(appointment);
-
-      // Only schedule notifications for today's task
-      if (taskTime.day == now.day && taskTime.month == now.month && taskTime.year == now.year) {
-        tz.TZDateTime scheduledTime =
-        _convertToTZDateTime(taskTime.subtract(const Duration(minutes: 2)));
-
-        notificationService.scheduleNotification(
-          taskTime.hashCode,
-          oneWeekList[i],
-          'Your task "${oneWeekList[i]}" is scheduled for ${taskTime.hour}:${taskTime.minute}',
-          scheduledTime,
-        );
-      }
     }
 
     setState(() {});
   }
 
+  bool _isDateInStreak(DateTime date) {
+    if (widget.user == null || widget.user!.dailyStreak == 0) return false;
 
-  tz.TZDateTime _convertToTZDateTime(DateTime dateTime) {
-    final location = tz.getLocation('Asia/Colombo'); // Set your desired timezone
-    return tz.TZDateTime.from(dateTime, location);
+    DateTime lastActiveDate = widget.user!.lastActiveDate;
+    DateTime streakStartDate =
+    lastActiveDate.subtract(Duration(days: widget.user!.dailyStreak - 1));
+
+    return date.isAfter(streakStartDate.subtract(const Duration(days: 1))) &&
+        date.isBefore(lastActiveDate.add(const Duration(days: 1)));
   }
 
   @override
   Widget build(BuildContext context) {
-    return SfCalendar(
-      view: CalendarView.month,
-      showNavigationArrow: true,
-      showDatePickerButton: true,
-      showTodayButton: true,
-      monthViewSettings: const MonthViewSettings(showAgenda: true),
-      dataSource: _AppointmentDataSource(appointments),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SfCalendar(
+        view: CalendarView.month,
+        showNavigationArrow: true,
+        showDatePickerButton: true,
+        showTodayButton: true,
+        monthCellBuilder: (BuildContext context, MonthCellDetails details) {
+          bool isInStreak = _isDateInStreak(details.date);
+
+          return Center(
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: isInStreak ? Colors.orange : Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  details.date.day.toString(),
+                  style: TextStyle(
+                    fontWeight: isInStreak ? FontWeight.bold : FontWeight.normal,
+                    color: isInStreak ? Colors.white : Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        monthViewSettings: const MonthViewSettings(showAgenda: true),
+        dataSource: _AppointmentDataSource(appointments),
+        headerStyle: const CalendarHeaderStyle(
+          backgroundColor: Color(0xFF0F75BC),
+          textStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+
     );
   }
 }
@@ -118,3 +143,4 @@ extension DateTimeCopyWith on DateTime {
     );
   }
 }
+

@@ -96,6 +96,9 @@ class AuthService {
               "jobList": [],
               "dailyVideoList": [],
               "initDate": DateTime.now(),
+              "score": 0,
+              "dailyStreak": 0,
+              "lastActiveDate": null,
             };
 
             // Add user details to Firestore for the first time

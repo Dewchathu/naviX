@@ -80,26 +80,30 @@ class _SplashScreenState extends State<SplashScreen> {
   void _listenToInternetStatus() {
     _internetStatusSubscription =
         InternetConnection().onStatusChange.listen((InternetStatus status) {
-      switch (status) {
-        case InternetStatus.connected:
-          if (!_isConnected) {
-            showConnectivitySnackBar(context, true);
-            setState(() => _isConnected = true);
-            _initializeApp();
+          switch (status) {
+            case InternetStatus.connected:
+              if (!_isConnected) {
+                showConnectivitySnackBar(context, true);
+                setState(() => _isConnected = true);
+                // Ensure initialization happens only once when the app first connects
+                if (progress < 1.0) {
+                  _initializeApp();  // Initialize app after reconnecting
+                }
+              }
+              break;
+            case InternetStatus.disconnected:
+              if (_isConnected) {
+                showConnectivitySnackBar(context, false);
+                setState(() {
+                  _isConnected = false;
+                  message = 'No internet connection. Please reconnect.';
+                });
+              }
+              break;
           }
-          break;
-        case InternetStatus.disconnected:
-          if (_isConnected) {
-            showConnectivitySnackBar(context, false);
-            setState(() {
-              _isConnected = false;
-              message = 'No internet connection. Please reconnect.';
-            });
-          }
-          break;
-      }
-    });
+        });
   }
+
 
   void showConnectivitySnackBar(BuildContext context, bool isConnected) {
     final IconData iconData = isConnected ? Icons.wifi : Icons.wifi_off;

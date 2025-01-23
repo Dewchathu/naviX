@@ -37,8 +37,15 @@ class _SetupScreenState extends State<SetupScreen> {
   String? selectedAcademicYear;
   String? selectedGraduationYear;
 
-  List<String> academicYears = ['1.1', '1.2', '2.1', '2.2', '3.1', '3.2'];
-  List<String> graduationYears = [];
+  final Map<String, String> academicYearsMap = {
+    '1.1': '1 Year 1 Semester',
+    '1.2': '1 Year 2 Semester',
+    '2.1': '2 Year 1 Semester',
+    '2.2': '2 Year 2 Semester',
+    '3.1': '3 Year 1 Semester',
+    '3.2': '3 Year 2 Semester',
+  };
+  Map<String, String> graduationYears = {};
 
   @override
   void initState() {
@@ -47,21 +54,25 @@ class _SetupScreenState extends State<SetupScreen> {
     _generateGraduationYears();
   }
 
-  List<String> _generateGraduationYears() {
+  Map<String, String> _generateGraduationYears() {
     int currentYear = DateTime.now().year;
-    // Generate the next 5 years
+
     for (int i = 0; i < 5; i++) {
-      graduationYears.add((currentYear + i).toString());
+      String year = (currentYear + i).toString();
+      graduationYears[year] = year;
     }
 
     return graduationYears;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Padding(
@@ -120,7 +131,7 @@ class _SetupScreenState extends State<SetupScreen> {
         _buildDropdownField(
           title: 'What is your current academic year?*',
           value: selectedAcademicYear,
-          items: academicYears,
+          itemsMap: academicYearsMap,
           onChanged: (value) {
             setState(() {
               selectedAcademicYear = value;
@@ -130,7 +141,7 @@ class _SetupScreenState extends State<SetupScreen> {
         _buildDropdownField(
           title: 'What is your graduation year?*',
           value: selectedGraduationYear,
-          items: graduationYears,
+          itemsMap: graduationYears,
           onChanged: (value) {
             setState(() {
               selectedGraduationYear = value;
@@ -194,7 +205,7 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget _buildDropdownField({
     required String title,
     required String? value,
-    required List<String> items,
+    required Map<String, String> itemsMap,
     required ValueChanged<String?> onChanged,
   }) {
     return Padding(
@@ -243,10 +254,10 @@ class _SetupScreenState extends State<SetupScreen> {
               ),
             ),
             onChanged: onChanged,
-            items: items.map((String item) {
+            items: itemsMap.entries.map((entry) {
               return DropdownMenuItem<String>(
-                value: item,
-                child: Text(item),
+                value: entry.key, // Internal value
+                child: Text(entry.value), // Display value
               );
             }).toList(),
           )
@@ -254,6 +265,7 @@ class _SetupScreenState extends State<SetupScreen> {
       ),
     );
   }
+
 
   Widget _jobList() {
     return Column(
