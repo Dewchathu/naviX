@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../actions/move_to_next_sceen.dart';
@@ -25,6 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   String profilePictureUrl = "";
+  int streak = 0;
+  int rank = 0;
 
   @override
   void initState() {
@@ -44,6 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           _nameController.text = userInfo["name"] ?? "";
           _emailController.text = userInfo["email"] ?? "";
+          streak = userInfo["dailyStreak"] ?? 0;
+          rank = userInfo["rank"] ?? 0;
         });
       }
     } catch (e) {
@@ -141,9 +146,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatCard('100', 'Posted', Icons.upload_file),
-                _buildStatCard('7.8', 'Rank', Icons.star),
-                _buildStatCard('100', 'Saved', Icons.bookmark),
+                _buildStatCard(streak.toString(), 'Streak', 'assets/svgs/flame.svg'),
+                _buildStatCard(rank.toString(), 'Rank', 'assets/svgs/winner.svg'),
               ],
             ),
             const SizedBox(height: 20),
@@ -188,12 +192,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
+  Widget _buildStatCard(String value, String label, String img) {
     return Column(
       children: [
-        CircleAvatar(
-          backgroundColor: const Color(0xFF0F75BC).withOpacity(0.2),
-          child: Icon(icon, color: const Color(0xFF0F75BC)),
+        SvgPicture.asset(
+          img,
+          width: 30,
+          height: 30,
         ),
         const SizedBox(height: 8),
         Text(

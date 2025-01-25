@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:navix/services/youtube_service.dart';
+import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../providers/streak_provider.dart';
 import '../services/firestore_service.dart';
+import '../services/streak_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
@@ -35,7 +38,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _isInitialized = false;
   DateTime? lastScoreUpdateDate;
   int dailyScore = 0;
-
 
   @override
   void initState() {
@@ -89,6 +91,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   // Listener to track video position
   void _listener() {
+    final streakProvider = Provider.of<StreakProvider>(context);
+
     if (_isPlayerReady && mounted) {
       final currentPosition = _controller.value.position.inSeconds;
 
@@ -107,8 +111,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           dailyScore += 5;
           updateUserScore(scoreUp);
         });
+
         if (dailyScore >= 15) {
-          updateLastActiveDate();
+          streakProvider.updateStreak();
         }
 
         _currentCheckpointIndex++;
@@ -117,58 +122,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       setState(() {});
     }
   }
-
-
-
-  Future<void> updateLastActiveDate() async {
-    try {
-      String? userId = await FirestoreService().getCurrentUserId();
-      if (userId != null) {
-        final userDoc = await _firestore.collection('User').doc(userId).get();
-
-        if (userDoc.exists) {
-          final data = userDoc.data()!;
-          final lastActiveDate = data['lastActiveDate']?.toDate();
-          final currentStreak = data['dailyStreak'] ?? 0;
-          final today = DateTime.now();
-          int newStreak = 1; // Default to 1 if no streak exists
-
-          if (lastActiveDate != null) {
-            final difference = today.difference(lastActiveDate).inDays;
-
-            if (difference == 1) {
-              // Continue streak
-              newStreak = currentStreak + 1;
-            } else if (difference > 1) {
-              // Reset streak if missed a day
-              newStreak = 1;
-            }
-          }
-
-          // Update Firestore
-          await _firestore.collection('User').doc(userId).set({
-            'lastActiveDate': Timestamp.fromDate(today),
-            'dailyStreak': newStreak,
-          }, SetOptions(merge: true));
-
-          showToast('Streak updated successfully! Current streak: $newStreak');
-        } else {
-          // Initialize user data if document doesn't exist
-          await _firestore.collection('User').doc(userId).set({
-            'lastActiveDate': Timestamp.now(),
-            'dailyStreak': 1,
-          });
-
-          showToast('Streak started! Current streak: 1');
-        }
-      } else {
-        showToast('User ID not found');
-      }
-    } catch (e) {
-      showToast('Failed to update streak: $e');
-    }
-  }
-
 
 
   @override

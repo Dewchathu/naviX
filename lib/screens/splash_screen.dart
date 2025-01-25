@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
@@ -204,7 +203,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     fontWeight: FontWeight.bold,
                     color: Colors.white)
             ),
-            const SizedBox(height: 10)
+            const SizedBox(height: 20)
           ],
         ),
       ),

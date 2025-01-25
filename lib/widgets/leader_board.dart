@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:loading_indicator/loading_indicator.dart';
+import 'package:navix/services/firestore_service.dart';
 
 class Leaderboard extends StatelessWidget {
-  Stream<List<Map<String, dynamic>>> fetchAllUsers() {
-    return FirebaseFirestore.instance.collection('User').snapshots().map(
-          (snapshot) =>
-          snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList(),
-    );
-  }
+
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +24,20 @@ class Leaderboard extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           StreamBuilder<List<Map<String, dynamic>>>(
-            stream: fetchAllUsers(),
+            stream: _firestoreService.fetchAllUsers(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: LoadingIndicator(
+                        indicatorType: Indicator.lineSpinFadeLoader,
+                        colors: [Colors.blue],
+                        strokeWidth: 1,
+                      ),
+                    ),
+                );
               } else if (snapshot.hasError) {
                 return const Center(child: Text("Error loading data"));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -39,6 +46,7 @@ class Leaderboard extends StatelessWidget {
                 final users = snapshot.data!;
                 if (users.isNotEmpty) {
                   users.sort((a, b) => b['score'].compareTo(a['score']));
+                  _firestoreService.updateUserRank(users);
                 }
                 return ListView.builder(
                   shrinkWrap: true,

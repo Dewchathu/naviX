@@ -99,6 +99,7 @@ class AuthService {
               "score": 0,
               "dailyStreak": 0,
               "lastActiveDate": null,
+              "rank": 0
             };
 
             // Add user details to Firestore for the first time

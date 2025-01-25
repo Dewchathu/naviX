@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/providers/profile_provider.dart';
+import 'package:navix/providers/streak_provider.dart';
 import 'package:navix/screens/splash_screen.dart';
 import 'package:navix/services/notification_service.dart';
 import 'package:provider/provider.dart';
@@ -21,9 +22,15 @@ void main() async {
   final NotificationService notificationService = NotificationService();
   await notificationService.init();
 
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (_) => ProfileProvider()),
-  ], child: const MyApp()));
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => ProfileProvider()),
+      ChangeNotifierProvider(
+        create: (_) => StreakProvider(),
+      )
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

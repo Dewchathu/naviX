@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:navix/models/user_info.dart';
 import 'package:navix/services/notification_service.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+import '../providers/streak_provider.dart';
 
 class Calendar extends StatefulWidget {
   final UserInfo? user;
@@ -20,13 +23,21 @@ class _CalendarState extends State<Calendar> {
   @override
   void initState() {
     super.initState();
+
     if (widget.user != null) {
       initDate = widget.user!.initDate;
       oneWeekList = widget.user!.oneWeekList;
       notificationService.init();
+
+      // Use listen: false to avoid rebuilding the widget
+      Future.delayed(Duration.zero, () {
+        Provider.of<StreakProvider>(context, listen: false).loadStreak();
+      });
     }
+
     _scheduleWeeklyTasks();
   }
+
 
   void _scheduleWeeklyTasks() {
     DateTime now = DateTime.now();
@@ -56,15 +67,22 @@ class _CalendarState extends State<Calendar> {
   }
 
   bool _isDateInStreak(DateTime date) {
-    if (widget.user == null || widget.user!.dailyStreak == 0) return false;
+    final streakProvider = Provider.of<StreakProvider>(context);
 
-    DateTime lastActiveDate = widget.user!.lastActiveDate;
-    DateTime streakStartDate =
-    lastActiveDate.subtract(Duration(days: widget.user!.dailyStreak - 1));
+    // Get values from the streak
+    int dailyStreak = streakProvider.streak['dailyStreak'] ?? 0;
+    DateTime? lastActiveDate = streakProvider.streak['lastActiveDate'];
+
+    // If lastActiveDate is null or dailyStreak is 0, return false
+    if (dailyStreak == 0 || lastActiveDate == null) return false;
+
+    // Calculate streak start date
+    DateTime streakStartDate = lastActiveDate.subtract(Duration(days: dailyStreak - 1));
 
     return date.isAfter(streakStartDate.subtract(const Duration(days: 1))) &&
-        date.isBefore(lastActiveDate.add(const Duration(days: 1)));
+        date.isBefore(lastActiveDate.add(const Duration(days: 0)));
   }
+
 
   @override
   Widget build(BuildContext context) {

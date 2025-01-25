@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../widgets/info_messages.dart';
 import 'auth_service.dart';
 
@@ -20,7 +21,8 @@ class FirestoreService {
     try {
       String? userId = await getCurrentUserId();
       if (userId != null) {
-        DocumentSnapshot<Map<String, dynamic>> snapshot = await _firestore.collection('User').doc(userId).get();
+        DocumentSnapshot<Map<String, dynamic>> snapshot =
+            await _firestore.collection('User').doc(userId).get();
 
         if (snapshot.exists) {
           // Return all user information along with course details
@@ -39,13 +41,15 @@ class FirestoreService {
     }
   }
 
-
   // Method to update user information
   Future<void> updateUserInfo(Map<String, dynamic> updatedInfoJson) async {
     try {
       String? userId = await getCurrentUserId();
       if (userId != null) {
-        await _firestore.collection('User').doc(userId).set(updatedInfoJson, SetOptions(merge: true));
+        await _firestore
+            .collection('User')
+            .doc(userId)
+            .set(updatedInfoJson, SetOptions(merge: true));
         showToast('Profile updated successfully');
       } else {
         showToast('User ID not found');
@@ -54,30 +58,41 @@ class FirestoreService {
       showToast('Request Denied: $e');
     }
   }
+
   // Method to get the current user ID
   Future<String?> getCurrentUserId() async {
     return await AuthService().getCurrentUserId();
   }
-}
 
 //get all user info
-Stream<List<Map<String, dynamic>>> fetchAllUsers() {
-  return FirebaseFirestore.instance
-      .collection('User') // Use the appropriate collection
-      .snapshots() // This stream listens for changes
-      .map((snapshot) {
-    return snapshot.docs.map((doc) {
-      return {
-        "id": doc.id,
-        "name": doc["name"],
-        "score": doc["score"],
-        "dailyStreak": doc["dailyStreak"],
-        "profileUrl": doc["profileUrl"]
-      };
-    }).toList();
-  });
+  Stream<List<Map<String, dynamic>>> fetchAllUsers() {
+    return FirebaseFirestore.instance
+        .collection('User')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return {
+          "id": doc.id,
+          "name": doc["name"],
+          "score": doc["score"],
+          "dailyStreak": doc["dailyStreak"],
+          "profileUrl": doc["profileUrl"]
+        };
+      }).toList();
+    });
+  }
+
+//update user rank
+  Future<void> updateUserRank(List<Map<String, dynamic>> users) async {
+    for (int i = 0; i < users.length; i++) {
+      final user = users[i];
+        // Update the user's rank in Firebase
+        await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user['id'])
+            .update({
+          'rank': i + 1,
+        });
+    }
+  }
 }
-
-
-
-

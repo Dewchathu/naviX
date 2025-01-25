@@ -18,7 +18,7 @@ class _HomeScrollState extends State<HomeScroll> {
   @override
   void initState() {
     super.initState();
-    dailyVideoList = (widget.user?.dailyVideoList as List<String>?) ?? [];
+    dailyVideoList = widget.user?.dailyVideoList ?? [];
     weekTopic = (widget.user?.oneWeekList[now.weekday-1])!;
   }
 
@@ -33,11 +33,12 @@ class _HomeScrollState extends State<HomeScroll> {
             children: [
               Container(
                 height: 40,
-                margin: EdgeInsets.only(bottom: 15),
+                margin: const EdgeInsets.only(bottom: 15),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                     color: const Color(0xFF0F75BC),
-                    borderRadius: BorderRadius.circular(20)),
+                    borderRadius: BorderRadius.circular(20)
+                ),
                 child: Text(weekTopic,
                     style: const TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold
