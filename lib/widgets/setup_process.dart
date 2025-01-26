@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 
 Future<Map<String, List<String>>> setupProcess(
     List<String> selectedJobs,
-    String skills,
+    List<String> skills,
+    List<String> preferences,
     ) async {
   List<String> threeMonthList = [];
   List<String> oneMonthList = [];
@@ -20,7 +21,7 @@ Future<Map<String, List<String>>> setupProcess(
 
   // Step 1: Process Three-Month List
   Candidates? response = await gemini.text(
-    "What are 3 key areas to learn in ${selectedJobs} that complement ${skills}? Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
+    "What are 3 key areas to learn in $selectedJobs that complement $skills, $preferences? Give the answer in plain text and without description. ex: 1. Bloc, 2. Streamer, 3. Stateful",
   );
 
   // Debugging the response

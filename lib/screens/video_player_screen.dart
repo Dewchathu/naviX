@@ -90,8 +90,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   // Listener to track video position
+  // Listener to track video position
   void _listener() {
-    final streakProvider = Provider.of<StreakProvider>(context);
+    final streakProvider = Provider.of<StreakProvider>(context, listen: false); // Add listen: false here
 
     if (_isPlayerReady && mounted) {
       final currentPosition = _controller.value.position.inSeconds;
@@ -122,6 +123,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       setState(() {});
     }
   }
+
 
 
   @override

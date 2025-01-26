@@ -3,13 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/services/firestore_service.dart';
 import 'package:navix/widgets/custom_button.dart';
 import 'package:navix/widgets/loading_indicator.dart';
-
-import '../widgets/custom_form_field.dart';
 import '../widgets/setup_process.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -20,8 +19,6 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen> {
-  final TextEditingController _preferencesController = TextEditingController();
-  final TextEditingController _skillsController = TextEditingController();
   final gemini = Gemini.instance;
   bool isSubmit = false;
   List<String> jobList = [];
@@ -33,6 +30,8 @@ class _SetupScreenState extends State<SetupScreen> {
   List<Map<String, dynamic>> electiveCourses = [];
   Map<String, int> semesterCreditRequirements = {};
   List<Map<String, dynamic>> recommendedCourses = [];
+  List<String> preferences = [];
+  List<String> skillsList = [];
 
   String? selectedAcademicYear;
   String? selectedGraduationYear;
@@ -44,6 +43,8 @@ class _SetupScreenState extends State<SetupScreen> {
     '2.2': '2 Year 2 Semester',
     '3.1': '3 Year 1 Semester',
     '3.2': '3 Year 2 Semester',
+    '4.1': '4 Year 1 Semester',
+    '4.2': '4 Year 2 Semester',
   };
   Map<String, String> graduationYears = {};
 
@@ -64,8 +65,6 @@ class _SetupScreenState extends State<SetupScreen> {
 
     return graduationYears;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +97,10 @@ class _SetupScreenState extends State<SetupScreen> {
               decoration: BoxDecoration(
                   //color: const Color(0xFF0F75BC),
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0F75BC), Color.fromARGB(
-                        255, 87, 186, 255)],
+                    colors: [
+                      Color(0xFF0F75BC),
+                      Color.fromARGB(255, 87, 186, 255)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(20)),
               child: const Icon(
@@ -148,14 +149,22 @@ class _SetupScreenState extends State<SetupScreen> {
             });
           },
         ),
-        _buildInputField(
+        _buildAutocompleteField(
           title: 'What are your preferences?*',
-          controller: _preferencesController,
+          suggestions: [
+            'Designing',
+            'Coding',
+            'Testing',
+            'UI/UX',
+            'Machine Learning'
+          ],
+          newList: preferences,
           hintText: 'Enter your preferences, Ex: Designing, Coding',
         ),
-        _buildInputField(
+        _buildAutocompleteField(
           title: 'What are your skills?*',
-          controller: _skillsController,
+          suggestions: ['Dart', 'Figma', 'Photoshop', 'Python', 'Flutter'],
+          newList: skillsList,
           hintText: 'Enter your skills, Ex: Dart, Figma, Photoshop',
         ),
         const SizedBox(height: 30),
@@ -169,7 +178,7 @@ class _SetupScreenState extends State<SetupScreen> {
               loadingIndicator.show(context);
               gemini
                   .text(
-                      "${_preferencesController.text} are my preferences, and ${_skillsController.text} are my skills. What are some job titles related to computer science that align with these preferences and skills? Provide the answer as a list.")
+                      "$preferences are my preferences, and $skillsList are my skills. What are some job titles related to computer science that align with these preferences and skills? Provide the answer as a list.")
                   .then((value) {
                 if (value?.output != null) {
                   // Split by newline and remove the leading numbers using regex
@@ -266,7 +275,6 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-
   Widget _jobList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,14 +326,8 @@ class _SetupScreenState extends State<SetupScreen> {
                 await FirestoreService().updateUserInfo({
                   "academicYear": selectedAcademicYear,
                   "graduationYear": selectedGraduationYear,
-                  "skills": _skillsController.text
-                      .split(',')
-                      .map((e) => e.trim())
-                      .toList(),
-                  "preferences": _preferencesController.text
-                      .split(',')
-                      .map((e) => e.trim())
-                      .toList(),
+                  "skills": skillsList,
+                  "preferences": preferences,
                   "jobList": selectedJobs,
                   "threeMonthList": threeMonthList,
                   "oneMonthList": oneMonthList,
@@ -348,11 +350,28 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
-  Widget _buildInputField({
+  Widget _buildAutocompleteField({
     required String title,
-    required TextEditingController controller,
+    required List<String> suggestions,
+    required List<String> newList,
     required String hintText,
   }) {
+    final TextEditingController controller = TextEditingController();
+    final FocusNode focusNode = FocusNode();
+
+    // Listener to handle user input and add it to suggestions if not present
+    controller.addListener(() {
+      String input = controller.text.trim();
+
+      // Add the user input to the suggestions if it isn't already present
+      if (input.isNotEmpty && !suggestions.contains(input)) {
+        setState(() {
+          suggestions.add(input);
+          debugPrint(input);
+        });
+      }
+    });
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Column(
@@ -367,14 +386,88 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          CustomFormField(
-            controller: controller,
-            hintText: hintText,
-          )
+          TypeAheadField<String>(
+            builder: (context, controller, focusNode) {
+              return TextField(
+                controller: controller,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: const Color(0xFFFFFFFF),
+                  contentPadding: const EdgeInsets.all(14.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0F75BC),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Color(0xFF0092FF)),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Color(0xFF0F75BC)),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              );
+            },
+            emptyBuilder: (context) => const Text(''),
+            suggestionsCallback: (pattern) {
+              if (pattern.isEmpty) {
+                return Future.value([]);
+              }
+              return Future.value(
+                suggestions.where((String suggestion) {
+                  return suggestion
+                      .toLowerCase()
+                      .contains(pattern.toLowerCase());
+                }).toList(),
+              );
+            },
+            itemBuilder: (context, String suggestion) {
+              return ListTile(title: Text(suggestion));
+            },
+            onSelected: (String selection) {
+              setState(() {
+                // Add the selected word if it's not already in the list
+                if (!newList.contains(selection)) {
+                  newList.add(selection);
+                }
+              });
+            },
+          ),
+          // Display chips for the list
+          _buildChips(newList),
         ],
       ),
     );
   }
+
+
+  Widget _buildChips(List<String> newList) {
+    return Wrap(
+      spacing: 8.0, // Horizontal spacing between chips
+      runSpacing: 4.0, // Vertical spacing between chips
+      children: newList.map((item) {
+        return Chip(
+          label: Text(item),
+          deleteIcon: const Icon(Icons.cancel, size: 16),
+          onDeleted: () {
+            setState(() {
+              newList.remove(item);
+            });
+          },
+          backgroundColor: const Color(0xFF0F75BC),
+          labelStyle: const TextStyle(color: Colors.white),
+        );
+      }).toList(),
+    );
+  }
+
+
 
   Widget _buildSelectableCard(String job, bool isSelected) {
     return IntrinsicWidth(
@@ -409,21 +502,19 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _runTest() async {
     loadingIndicator.show(context);
     try {
-      // Get selected jobs and skills
-      String skills = _skillsController.text;
-
       await runElectiveSelector();
 
       // Call the method from `setupProcess.dart`
-      await setupProcess(selectedJobs, skills).then((value) => {
-            setState(() {
-              threeMonthList = value['threeMonthList'] ?? [];
-              oneMonthList = value['oneMonthList'] ?? [];
-              oneWeekList = value['oneWeekList'] ?? [];
-              dailyVideoList = value['dailyVideoList'] ?? [];
-            }),
-            debugPrint('Results: $value')
-          });
+      await setupProcess(selectedJobs, skillsList, preferences)
+          .then((value) => {
+                setState(() {
+                  threeMonthList = value['threeMonthList'] ?? [];
+                  oneMonthList = value['oneMonthList'] ?? [];
+                  oneWeekList = value['oneWeekList'] ?? [];
+                  dailyVideoList = value['dailyVideoList'] ?? [];
+                }),
+                debugPrint('Results: $value')
+              });
 
       debugPrint('Three-Month List: $threeMonthList');
       debugPrint('One-Month List: $oneMonthList');
@@ -449,8 +540,6 @@ class _SetupScreenState extends State<SetupScreen> {
           for (var entry in json.decode(creditsJson))
             "${entry['year']}-${entry['semester']}": entry['requiredCredit']
         };
-        //debugPrint('--------------------------: $electiveCourses');
-        //debugPrint('-----------------------: $semesterCreditRequirements');
       });
     } catch (e) {
       debugPrint('Error loading JSON files: $e');
@@ -468,7 +557,7 @@ class _SetupScreenState extends State<SetupScreen> {
     - required credits per semester: ${json.encode(semesterCreditRequirements)}
     
   Select suitable elective courses for each semester considering 
-    - **preferences:** ${_preferencesController.text} 
+    - **preferences:** ${preferences} 
     - **future jobs:** ${selectedJobs} 
     - **credit requirements** 
   such that the total credits match the required credits for that semester. 
@@ -486,10 +575,8 @@ class _SetupScreenState extends State<SetupScreen> {
 
       if (geminiResponse != null) {
         // Clean the response string
-        String cleanedResponse = geminiResponse
-            .replaceAll('\n', '')
-            .replaceAll('\r', '')
-            .trim();
+        String cleanedResponse =
+            geminiResponse.replaceAll('\n', '').replaceAll('\r', '').trim();
 
         debugPrint('Cleaned Response: $cleanedResponse');
 
@@ -505,9 +592,9 @@ class _SetupScreenState extends State<SetupScreen> {
                   "semester": semester,
                   "courses": courses.entries
                       .map((entry) => {
-                    "code": entry.key,
-                    "name": entry.value.toString(),
-                  })
+                            "code": entry.key,
+                            "name": entry.value.toString(),
+                          })
                       .toList(),
                 };
                 recommendedCourses.add(semesterData);
