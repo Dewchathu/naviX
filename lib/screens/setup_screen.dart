@@ -9,6 +9,7 @@ import 'package:navix/screens/home.dart';
 import 'package:navix/services/firestore_service.dart';
 import 'package:navix/widgets/custom_button.dart';
 import 'package:navix/widgets/loading_indicator.dart';
+import '../utils/suggestions_lists.dart';
 import '../widgets/setup_process.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -32,6 +33,10 @@ class _SetupScreenState extends State<SetupScreen> {
   List<Map<String, dynamic>> recommendedCourses = [];
   List<String> preferences = [];
   List<String> skillsList = [];
+
+  final TextEditingController _preferencesController = TextEditingController();
+  final TextEditingController _skillsControler = TextEditingController();
+
 
   String? selectedAcademicYear;
   String? selectedGraduationYear;
@@ -151,20 +156,16 @@ class _SetupScreenState extends State<SetupScreen> {
         ),
         _buildAutocompleteField(
           title: 'What are your preferences?*',
-          suggestions: [
-            'Designing',
-            'Coding',
-            'Testing',
-            'UI/UX',
-            'Machine Learning'
-          ],
+          suggestions: SuggestionsLists().prefSuggestions,
           newList: preferences,
+          controller: _preferencesController,
           hintText: 'Enter your preferences, Ex: Designing, Coding',
         ),
         _buildAutocompleteField(
           title: 'What are your skills?*',
-          suggestions: ['Dart', 'Figma', 'Photoshop', 'Python', 'Flutter'],
+          suggestions: SuggestionsLists().skillsList,
           newList: skillsList,
+          controller: _skillsControler,
           hintText: 'Enter your skills, Ex: Dart, Figma, Photoshop',
         ),
         const SizedBox(height: 30),
@@ -354,23 +355,9 @@ class _SetupScreenState extends State<SetupScreen> {
     required String title,
     required List<String> suggestions,
     required List<String> newList,
+    required TextEditingController controller,
     required String hintText,
   }) {
-    final TextEditingController controller = TextEditingController();
-    final FocusNode focusNode = FocusNode();
-
-    // Listener to handle user input and add it to suggestions if not present
-    controller.addListener(() {
-      String input = controller.text.trim();
-
-      // Add the user input to the suggestions if it isn't already present
-      if (input.isNotEmpty && !suggestions.contains(input)) {
-        setState(() {
-          suggestions.add(input);
-          debugPrint(input);
-        });
-      }
-    });
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -387,10 +374,19 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           TypeAheadField<String>(
+            controller: controller,
             builder: (context, controller, focusNode) {
               return TextField(
                 controller: controller,
                 focusNode: focusNode,
+                onChanged: (input) {
+                  if (input.isNotEmpty && !suggestions.contains(input)) {
+                    setState(() {
+                      suggestions.add(input);
+                      debugPrint('$suggestions');
+                    });
+                  }
+                },
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: const TextStyle(color: Colors.grey),
@@ -415,26 +411,36 @@ class _SetupScreenState extends State<SetupScreen> {
               );
             },
             emptyBuilder: (context) => const Text(''),
-            suggestionsCallback: (pattern) {
+            suggestionsCallback: (pattern) async {
               if (pattern.isEmpty) {
-                return Future.value([]);
+                return [];
               }
-              return Future.value(
-                suggestions.where((String suggestion) {
-                  return suggestion
-                      .toLowerCase()
-                      .contains(pattern.toLowerCase());
-                }).toList(),
-              );
+
+              // Add the input pattern to suggestions if it's not already there
+              if (!suggestions.contains(pattern)) {
+                suggestions.insert(0, pattern);
+              }
+
+              // Filter the suggestions based on the pattern and limit the number of items
+              final filteredSuggestions = suggestions
+                  .where((String suggestion) {
+                return suggestion.toLowerCase().contains(pattern.toLowerCase());
+              })
+                  .take(5)
+                  .toList();
+
+              return filteredSuggestions;
             },
+
             itemBuilder: (context, String suggestion) {
-              return ListTile(title: Text(suggestion));
-            },
+                return ListTile(title: Text(suggestion));
+              },
             onSelected: (String selection) {
               setState(() {
                 // Add the selected word if it's not already in the list
                 if (!newList.contains(selection)) {
                   newList.add(selection);
+                  controller.clear();
                 }
               });
             },
@@ -454,12 +460,16 @@ class _SetupScreenState extends State<SetupScreen> {
       children: newList.map((item) {
         return Chip(
           label: Text(item),
-          deleteIcon: const Icon(Icons.cancel, size: 16),
+          deleteIcon: const Icon(Icons.cancel, size: 16, color: Colors.white),
           onDeleted: () {
             setState(() {
               newList.remove(item);
             });
           },
+          side: const BorderSide(
+            color: Color(0xFF0F75BC),
+            width: 1,
+          ),
           backgroundColor: const Color(0xFF0F75BC),
           labelStyle: const TextStyle(color: Colors.white),
         );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUserInfo();
   }
+
 
   Future<void> _loadUserInfo() async {
     try {
@@ -78,6 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint("Error fetching user info: $e");
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {

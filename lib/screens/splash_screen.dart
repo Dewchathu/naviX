@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/home.dart';
 import 'package:navix/screens/login_screen.dart';
@@ -9,6 +8,8 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../services/firestore_service.dart';
 import '../services/firestore_updater.dart';
 import '../services/shared_preference_service.dart';
+import '../services/internet_service.dart';
+import '../services/snackbar_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,21 +21,20 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   double progress = 0.0;
   bool _isConnected = false;
-  late StreamSubscription<InternetStatus> _internetStatusSubscription;
+  late StreamSubscription<bool> _internetStatusSubscription;
   String message = '';
-  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
     _listenToInternetStatus();
+    InternetService().startListening();
   }
 
   @override
   void dispose() {
     _internetStatusSubscription.cancel();
-    removeCustomSnackBar();
     super.dispose();
   }
 
@@ -46,14 +46,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // Prevent re-initialization if already running
     if (!_isConnected) {
       updateProgressAndMessage(0.0, 'Waiting for internet connection...');
       return;
     }
 
     updateProgressAndMessage(0.4, 'Internet connected! Preparing app...');
-
     FirestoreUpdater updater = FirestoreUpdater();
     bool isLogged = await SharedPreferenceService.getBool("isLogged") ?? false;
 
@@ -78,89 +76,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _listenToInternetStatus() {
     _internetStatusSubscription =
-        InternetConnection().onStatusChange.listen((InternetStatus status) {
-          switch (status) {
-            case InternetStatus.connected:
-              if (!_isConnected) {
-                showConnectivitySnackBar(context, true);
-                setState(() => _isConnected = true);
-                // Ensure initialization happens only once when the app first connects
-                if (progress < 1.0) {
-                  _initializeApp();  // Initialize app after reconnecting
-                }
-              }
-              break;
-            case InternetStatus.disconnected:
-              if (_isConnected) {
-                showConnectivitySnackBar(context, false);
-                setState(() {
-                  _isConnected = false;
-                  message = 'No internet connection. Please reconnect.';
-                });
-              }
-              break;
+        InternetService().connectionStatusStream.listen((isConnected) {
+          setState(() {
+            _isConnected = isConnected;
+            message = isConnected ? 'Internet connected!' : 'No internet connection.';
+          });
+          SnackbarService().showConnectivitySnackBar(context, isConnected);
+
+          if (isConnected && progress < 1.0) {
+            _initializeApp();
           }
         });
-  }
-
-
-  void showConnectivitySnackBar(BuildContext context, bool isConnected) {
-    final IconData iconData = isConnected ? Icons.wifi : Icons.wifi_off;
-    final color = isConnected ? Colors.green : const Color(0xFFC6293C);
-    final text =
-        isConnected ? 'Connected to internet!' : 'No internet connection.';
-
-    removeCustomSnackBar();
-    _overlayEntry = _createOverlayEntry(iconData, text, color);
-    Overlay.of(context).insert(_overlayEntry!);
-
-    if (isConnected) {
-      Future.delayed(const Duration(seconds: 3), () {
-        removeCustomSnackBar();
-      });
-    }
-  }
-
-  void removeCustomSnackBar() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  OverlayEntry _createOverlayEntry(IconData icon, String text, Color color) {
-    return OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top +
-            kToolbarHeight +
-            8, // Adjust as needed
-        left: 16,
-        right: 16,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: Colors.white),
-                const SizedBox(width: 8),
-                Text(text, style: const TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
