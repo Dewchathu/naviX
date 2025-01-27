@@ -7,6 +7,6 @@ class ProfileProvider with ChangeNotifier {
 
   void updateProfilePicture(String newUrl) {
     _profilePictureUrl = newUrl;
-    notifyListeners(); // Notify widgets about the change
+    notifyListeners();
   }
 }

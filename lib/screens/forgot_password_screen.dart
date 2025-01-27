@@ -5,6 +5,7 @@ import '../actions/move_to_next_sceen.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_form_field.dart';
+import '../widgets/loading_indicator.dart';
 
 
 class ForgetPasswordScreen extends StatefulWidget {
@@ -28,9 +29,11 @@ class _ForgetPasswordState extends State<ForgetPasswordScreen> {
       isLoading = true;
     });
     if(_formKey.currentState!.validate()){
+      loadingIndicator.show(context);
       restPassword();
     }
     else{
+      loadingIndicator.dismiss();
       setState((){
         isLoading = false;
       });
@@ -42,6 +45,7 @@ class _ForgetPasswordState extends State<ForgetPasswordScreen> {
       setState((){
         isLoading = false;
       });
+      loadingIndicator.dismiss();
       moveToNextScreen(context, const LoginScreen());
     });
   }

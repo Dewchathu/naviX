@@ -36,12 +36,12 @@ class CustomButton extends StatelessWidget {
         ),
         child: isLoading
             ? const SizedBox(
-          height: 30,
-          width: 30,
+          height: 25,
+          width: 25,
           child: LoadingIndicator(
-            indicatorType: Indicator.circleStrokeSpin,
-            colors: [Colors.white],
-            strokeWidth: 2,
+            indicatorType: Indicator.lineSpinFadeLoader,
+            colors: [Colors.grey],
+            strokeWidth: 1,
           ),
         )
             : Text(text),

@@ -19,6 +19,7 @@ class StorageService{
       try {
         await storage.ref('$folderName/${"${doc}_$fileName"}').putFile(filePath);
         final downloadUrl = await storage.ref('$folderName/${"${doc}_$fileName"}').getDownloadURL();
+        debugPrint(downloadUrl);
         return downloadUrl;
       }catch (e){
         debugPrint("upload error");

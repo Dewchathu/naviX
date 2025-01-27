@@ -103,7 +103,6 @@ class _LoginFormState extends State<LoginForm> {
           setState(() {
             isLoading = false;
           });
-          loadingIndicator.dismiss();
           showToast("No account found.");
           return; // Exit the method early if no account is found
         }
@@ -113,20 +112,17 @@ class _LoginFormState extends State<LoginForm> {
         setState(() {
           isLoading = false;
         });
-        loadingIndicator.dismiss();
         moveToNextScreen(context, const HomeScreen());
       } else {
         setState(() {
           isLoading = false;
         });
-        loadingIndicator.dismiss();
         showToast("Incorrect email or password. Please try again.");
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      loadingIndicator.dismiss();
       showToast("Login failed: $e");
     }
   }
@@ -185,18 +181,12 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ],
             ),
-            const SizedBox(height: 15.0),
+            const SizedBox(height: 20.0),
 
             CustomButton(
               onPressed: () {
-                // Navigator.of(context).push(
-                //   MaterialPageRoute(
-                //     builder: (context) => const HomeScreen(),
-                //   ),
-                // );
                 if (_formKey.currentState!.validate()) {
                   _login();
-                  loadingIndicator.show(context);
                 } else if (_formKey.currentState!.validate()) {
                   showToast("Logging Error");
                 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:provider/provider.dart';
 import '../actions/move_to_next_sceen.dart';
 import '../actions/update_signout.dart';
@@ -28,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String profilePictureUrl = "";
   int streak = 0;
   int rank = 0;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -41,7 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await FirestoreService().getCurrentUserInfo();
       if (userInfo != null) {
         setState(() {
-          profilePictureUrl = userInfo["profileUrl"] ?? "assets/images/profile_image.png";
+          profilePictureUrl = userInfo["profileUrl"] ??
+              "assets/images/profile_image.png";
           Provider.of<ProfileProvider>(context, listen: false)
               .updateProfilePicture(profilePictureUrl);
 
@@ -56,29 +59,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _selectImage(ImageSource source) async {
+  Future<void> _selectImage(ImageSource source, String? imageUrl) async {
     try {
-      final pickedFile = await ImagePicker().pickImage(source: source);
+      if (imageUrl != null) {
+        // This block will handle the case when a predefined image is selected
+        setState(() {
+          isLoading = true;
+        });
 
-      if (pickedFile != null) {
-        var downloadUrl = await StorageService().uploadFile(
-          File(pickedFile.path),
-          "Profile Pictures",
-          path_delegate.basename(File(pickedFile.path).path),
-        );
-
-        await FirestoreService().updateUserInfo({"profileUrl": downloadUrl});
+        // Directly update the profile picture with the selected Firebase image URL
+        await FirestoreService().updateUserInfo({"profileUrl": imageUrl});
 
         // Update the profile picture using the provider
         setState(() {
           Provider.of<ProfileProvider>(context, listen: false)
-              .updateProfilePicture(downloadUrl!);
+              .updateProfilePicture(imageUrl);
+          isLoading = false;
+          profilePictureUrl = imageUrl;
         });
+      } else {
+        // This block will handle the case when a new image is picked from the Camera or Gallery
+        final pickedFile = await ImagePicker().pickImage(source: source);
+
+        setState(() {
+          isLoading = true;
+        });
+
+        if (pickedFile != null) {
+          var downloadUrl = await StorageService().uploadFile(
+            File(pickedFile.path),
+            "Profile Pictures",
+            path_delegate.basename(File(pickedFile.path).path),
+          );
+
+          await FirestoreService().updateUserInfo({"profileUrl": downloadUrl});
+
+          // Update the profile picture using the provider
+          setState(() {
+            Provider.of<ProfileProvider>(context, listen: false)
+                .updateProfilePicture(downloadUrl!);
+            isLoading = false;
+            profilePictureUrl = downloadUrl;
+          });
+        }
       }
     } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
       debugPrint("Error selecting/updating image: $e");
     }
   }
+
 
   Future<void> _signOut() async {
     Navigator.of(context)
@@ -93,21 +125,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: const Color(0xFFEFEFEF),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F75BC),
-        title: const Text('Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Profile',
+            style:
+            TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         leading: IconButton(
-            onPressed:() {
+            onPressed: () {
               Navigator.of(context).pop();
             },
             icon: Icon(Icons.arrow_back),
-            color: Colors.white
-        ),
+            color: Colors.white),
         actions: [
-      IconButton(
-      icon: const Icon(Icons.exit_to_app_rounded),
-      color: Colors.white,
-      onPressed: _signOut,
-    ),
+          IconButton(
+            icon: const Icon(Icons.exit_to_app_rounded),
+            color: Colors.white,
+            onPressed: _signOut,
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -117,14 +150,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 30),
             GestureDetector(
               onTap: () {
-                showImageSourceDialog(context, _selectImage);
+                _showProfileImageDialog();
               },
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: profilePictureUrl.isNotEmpty
-                    ? NetworkImage(profilePictureUrl)
-                    : const AssetImage('assets/images/profile_image.png')
-                as ImageProvider,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Hero(
+                    tag: 'profileImage',
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: profilePictureUrl.isNotEmpty
+                          ? NetworkImage(profilePictureUrl)
+                          : const AssetImage('assets/images/profile_image.png')
+                      as ImageProvider,
+                    ),
+                  ),
+                  if (isLoading)
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: LoadingIndicator(
+                            indicatorType: Indicator.lineSpinFadeLoader,
+                            colors: [Colors.blue],
+                            strokeWidth: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 10),
@@ -146,7 +207,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatCard(streak.toString(), 'Streak', 'assets/svgs/flame.svg'),
+                _buildStatCard(
+                    streak.toString(), 'Streak', 'assets/svgs/flame.svg'),
                 _buildStatCard(rank.toString(), 'Rank', 'assets/svgs/winner.svg'),
               ],
             ),
@@ -165,18 +227,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'About',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
+                  SizedBox(height: 10),
+                  Text(
                     'A passionate UI/UX designer with a love for crafting meaningful digital experiences. Skilled in various tools including Adobe XD, Sketch, Figma, and more.',
                     style: TextStyle(
                       fontSize: 14,
@@ -216,6 +278,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showProfileImageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0),
+          ),
+          insetPadding: const EdgeInsets.all(20),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Hero(
+                    tag: 'profileImage',
+                    child: profilePictureUrl.isNotEmpty
+                        ? Image.network(
+                      profilePictureUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    )
+                        : Image.asset(
+                      'assets/images/profile_image.png',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: Colors.white,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context)
+                          .pop();
+                      showImagePickerBottomSheet(
+                          context, _selectImage
+                      );
+                      // showImageSourceDialog(
+                      //     context, _selectImage);
+                    },
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    label: const Text(
+                      'Change Profile Picture',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
