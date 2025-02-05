@@ -32,6 +32,7 @@ class AuthService {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
+      //await sendEmailVerification();
       return cred.user;
     } catch (e) {
       showToast("Failed to create account.");
@@ -39,6 +40,24 @@ class AuthService {
     }
     return null;
   }
+
+  // Login with verified email and password
+
+  // Future<User?> loginUserWithEmailAndPassword(String email, String password) async {
+  //   try {
+  //     final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+  //     if (cred.user != null && !cred.user!.emailVerified) {
+  //       showToast("Please verify your email before logging in.");
+  //       await _auth.signOut(); // Sign out unverified users
+  //       return null;
+  //     }
+  //     return cred.user;
+  //   } catch (e) {
+  //     showToast("Login failed.");
+  //     debugPrint("Error: $e");
+  //   }
+  //   return null;
+  // }
 
   // Login with email and password
   Future<User?> loginUserWithEmailAndPassword(
@@ -127,6 +146,30 @@ class AuthService {
       showToast('Error signing in with Google.');
       debugPrint('Error signing in with Google: $e');
     }
+  }
+
+  // send verfication email
+
+  Future<void> sendEmailVerification() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+        showToast("Verification email sent. Check your inbox.");
+      } else {
+        showToast("Your email is already verified.");
+      }
+    } catch (e) {
+      showToast("Error sending verification email.");
+      debugPrint("Error: $e");
+    }
+  }
+
+  //check email is verified
+  Future<bool> isEmailVerified() async {
+    User? user = _auth.currentUser;
+    await user?.reload(); // Reload user data
+    return user?.emailVerified ?? false;
   }
 
   // Send password reset email

@@ -77,7 +77,6 @@ class _SignupFormState extends State<SignupForm> {
   bool isLoading = false;
   String url = '';
 
-
   @override
   void dispose() {
     // Dispose of controllers to avoid memory leaks
@@ -87,7 +86,8 @@ class _SignupFormState extends State<SignupForm> {
   }
 
   String _getRandomImageUrl() {
-    String baseUrl = "https://firebasestorage.googleapis.com/v0/b/navix-dew.appspot.com/o/Profile%20Pictures%2F";
+    String baseUrl =
+        "https://firebasestorage.googleapis.com/v0/b/navix-dew.appspot.com/o/Profile%20Pictures%2F";
 
     final Map<String, String> imgDetails = {
       '01': '781b9714-6321-45b8-98c2-36a2f421b43e',
@@ -103,7 +103,8 @@ class _SignupFormState extends State<SignupForm> {
 
     // Generate a random key
     final random = Random();
-    final randomKey = imgDetails.keys.elementAt(random.nextInt(imgDetails.length));
+    final randomKey =
+        imgDetails.keys.elementAt(random.nextInt(imgDetails.length));
 
     // Construct and return the URL
     return "${baseUrl}${randomKey}.jpg?alt=media&token=${imgDetails[randomKey]}";
@@ -198,6 +199,16 @@ class _SignupFormState extends State<SignupForm> {
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your password';
+                } else if (value.length < 8) {
+                  return 'Password must be at least 8 characters';
+                } else if (!RegExp(r'(?=.*[A-Z])').hasMatch(value)) {
+                  return 'Password must contain an uppercase letter';
+                } else if (!RegExp(r'(?=.*[a-z])').hasMatch(value)) {
+                  return 'Password must contain a lowercase letter';
+                } else if (!RegExp(r'(?=.*\d)').hasMatch(value)) {
+                  return 'Password must contain a number';
+                } else if (!RegExp(r'(?=.*[@$!%*?&])').hasMatch(value)) {
+                  return 'Password must contain a special character (@, !, %, etc.)';
                 }
                 return null;
               },
@@ -216,6 +227,19 @@ class _SignupFormState extends State<SignupForm> {
 
                 return null;
               },
+            ),
+            const SizedBox(height: 10.0),
+            const Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                "Password must contain:\n"
+                "• At least 8 characters    "
+                "• One uppercase letter\n"
+                "• One lowercase letter    "
+                "• One number\n"
+                "• One special character",
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
             ),
             const SizedBox(height: 20.0),
             CustomButton(
