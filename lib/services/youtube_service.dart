@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class YouTubeService{
+import 'package:http/http.dart' as http;
 
+class YouTubeService {
   Future<int> fetchVideoDuration(String videoId, String apiKey) async {
-
     final url = Uri.parse(
         'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=$apiKey');
     final response = await http.get(url);

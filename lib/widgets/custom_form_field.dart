@@ -30,13 +30,14 @@ class _CustomFormFieldState extends State<CustomFormField> {
         keyboardType: widget.keyboardType,
         style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
+          labelText: widget.hintText,
           hintText: widget.hintText,
           hintStyle: const TextStyle(color: Colors.grey),
           filled: true,
           fillColor: const Color(0xFFFFFFFF),
           contentPadding: const EdgeInsets.all(14.0),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color:Color(0xFF0092FF)),
+            borderSide: const BorderSide(color: Color(0xFF0092FF)),
             borderRadius: BorderRadius.circular(10.0),
           ),
           enabledBorder: OutlineInputBorder(

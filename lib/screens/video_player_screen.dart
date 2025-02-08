@@ -1,13 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:navix/services/youtube_service.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../providers/streak_provider.dart';
 import '../services/firestore_service.dart';
-import '../services/streak_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoUrl;
@@ -66,7 +65,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     // Fetch video duration and set checkpoints
     try {
-      final durationInSeconds = await YouTubeService().fetchVideoDuration(videoId, youtubeApiKey);
+      final durationInSeconds =
+          await YouTubeService().fetchVideoDuration(videoId, youtubeApiKey);
       _checkpoints = [
         (durationInSeconds * 0.25).toInt(),
         (durationInSeconds * 0.50).toInt(),
@@ -84,7 +84,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
   }
 
-  Future<void> _loadApi() async{
+  Future<void> _loadApi() async {
     await dotenv.load(fileName: ".env");
     youtubeApiKey = dotenv.env['YOUTUBE_API_KEY'] ?? '';
   }
@@ -92,7 +92,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   // Listener to track video position
   // Listener to track video position
   void _listener() {
-    final streakProvider = Provider.of<StreakProvider>(context, listen: false); // Add listen: false here
+    final streakProvider = Provider.of<StreakProvider>(context,
+        listen: false); // Add listen: false here
 
     if (_isPlayerReady && mounted) {
       final currentPosition = _controller.value.position.inSeconds;
@@ -124,8 +125,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
-
-
   @override
   void dispose() {
     _controller.dispose();
@@ -140,7 +139,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           'score': newScore,
         };
         // Update the user's profile in Firestore with the new score
-        await _firestore.collection('User').doc(userId).set(updatedInfoJson, SetOptions(merge: true));
+        await _firestore
+            .collection('User')
+            .doc(userId)
+            .set(updatedInfoJson, SetOptions(merge: true));
 
         // Notify the user that the score was updated
         showToast('5 Points Collected');
@@ -153,7 +155,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void showToast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -178,62 +181,64 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       body: SafeArea(
         child: _isInitialized
             ? YoutubePlayerBuilder(
-          player: YoutubePlayer(
-            controller: _controller,
-            showVideoProgressIndicator: true,
-            progressIndicatorColor: Colors.blue,
-            progressColors: const ProgressBarColors(
-              playedColor: Colors.blue,
-              handleColor: Colors.blueAccent,
-            ),
-            onReady: () {
-              _isPlayerReady = true;
-            },
-          ),
-          builder: (context, player) {
-            return Column(
-              children: [
-                // Youtube Player
-                player,
-
-                // Video Script Section
-                if (widget.videoScript.isNotEmpty && !_controller.value.isFullScreen)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          const Divider(),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Video Description",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.videoScript,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black54,
-                            ),
-                            textAlign: TextAlign.justify,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
+                player: YoutubePlayer(
+                  controller: _controller,
+                  showVideoProgressIndicator: true,
+                  progressIndicatorColor: Colors.blue,
+                  progressColors: const ProgressBarColors(
+                    playedColor: Colors.blue,
+                    handleColor: Colors.blueAccent,
                   ),
-              ],
-            );
-          },
-        )
-            : const Center(child: CircularProgressIndicator()), // Show loading indicator
+                  onReady: () {
+                    _isPlayerReady = true;
+                  },
+                ),
+                builder: (context, player) {
+                  return Column(
+                    children: [
+                      // Youtube Player
+                      player,
+
+                      // Video Script Section
+                      if (widget.videoScript.isNotEmpty &&
+                          !_controller.value.isFullScreen)
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 16),
+                                const Divider(),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "Video Description",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  widget.videoScript,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.black54,
+                                  ),
+                                  textAlign: TextAlign.justify,
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              )
+            : const Center(
+                child: CircularProgressIndicator()), // Show loading indicator
       ),
     );
   }

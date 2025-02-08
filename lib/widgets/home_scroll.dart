@@ -19,7 +19,7 @@ class _HomeScrollState extends State<HomeScroll> {
   void initState() {
     super.initState();
     dailyVideoList = widget.user?.dailyVideoList ?? [];
-    weekTopic = (widget.user?.oneWeekList[now.weekday-1])!;
+    weekTopic = (widget.user?.oneWeekList[now.weekday - 1])!;
   }
 
   @override
@@ -29,23 +29,25 @@ class _HomeScrollState extends State<HomeScroll> {
         const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.only(left: 15, right: 15),
-          child: Row(
-            children: [
-              Container(
-                height: 40,
-                margin: const EdgeInsets.only(bottom: 15),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: const Color(0xFF0F75BC),
-                    borderRadius: BorderRadius.circular(20)
-                ),
-                child: Text(weekTopic,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                Container(
+                  height: 40,
+                  margin: const EdgeInsets.only(bottom: 15),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFF0F75BC),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Text(
+                    weekTopic,
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold
-                    ),
-                ),
-              )
-            ],
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         Expanded(

@@ -33,27 +33,54 @@ class LoginScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.white,
-          child: SingleChildScrollView(
+          body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/login_bg.jpg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: MediaQuery.of(context).size.height / 6),
-                const SizedBox(height: 20.0),
                 SizedBox(
-                  width: 100,
-                  child: Image.asset('assets/images/logo_blue.png'),
+                  height: MediaQuery.of(context).size.height / 3,
+                  child: Center(
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset('assets/images/logo_blue.png',
+                          fit: BoxFit.contain),
+                    ),
+                  ),
                 ),
-                const LoginForm(),
+                Container(
+                  height: MediaQuery.of(context).size.height * 2 / 3,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(70),
+                    ),
+                  ),
+                  child: const LoginForm(),
+                ),
               ],
             ),
           ),
-        ),
-      ),
+        ],
+      )),
     );
   }
 }
@@ -136,6 +163,14 @@ class _LoginFormState extends State<LoginForm> {
         child: Column(
           children: [
             const SizedBox(height: 10.0),
+            const Text(
+              'Login',
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F75BC)),
+            ),
+            const SizedBox(height: 30.0),
             CustomFormField(
               controller: _emailController,
               hintText: 'Email',

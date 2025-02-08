@@ -32,13 +32,14 @@ class AuthService {
     try {
       final cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      //await sendEmailVerification();
       return cred.user;
+    } on FirebaseAuthException catch (e) {
+      debugPrint("FirebaseAuthException: ${e.code} - ${e.message}");
+      throw e; // Throw exception to be handled in calling function
     } catch (e) {
-      showToast("Failed to create account.");
-      debugPrint("Error: $e");
+      debugPrint("General Error: $e");
+      throw Exception("An unexpected error occurred.");
     }
-    return null;
   }
 
   // Login with verified email and password

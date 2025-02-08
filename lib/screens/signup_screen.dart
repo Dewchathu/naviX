@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -33,26 +34,50 @@ class SignupScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.white,
-          child: SingleChildScrollView(
+          body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/images/login_bg.jpg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: MediaQuery.of(context).size.height / 8),
                 SizedBox(
-                  width: 100,
-                  child: Image.asset('assets/images/logo_blue.png'),
+                  height: MediaQuery.of(context).size.height / 6,
+                  child: const Center(
+                    child: Text(
+                      'NaviX',
+                      style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                  ),
                 ),
-                const SignupForm(),
+                Container(
+                  height: MediaQuery.of(context).size.height * 5 / 6,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(70),
+                    ),
+                  ),
+                  child: const SignupForm(),
+                ),
               ],
             ),
-          ),
-        ),
-      ),
+          )
+        ],
+      )),
     );
   }
 }
@@ -110,54 +135,71 @@ class _SignupFormState extends State<SignupForm> {
     return "${baseUrl}${randomKey}.jpg?alt=media&token=${imgDetails[randomKey]}";
   }
 
-  // Function to handle login button press
   _login() async {
     setState(() {
       isLoading = true;
       url = _getRandomImageUrl();
     });
+
     try {
-      await AuthService()
-          .createUserWithEmailAndPassword(
-              _emailController.text, _passwordController.text)
-          .then((user) async {
-        if (user != null) {
-          await FirestoreService().addUser(user.uid, {
-            "name": _nameController.text,
-            "email": _emailController.text,
-            "academicYear": null,
-            "graduationYear": null,
-            "preferences": [],
-            "skills": [],
-            "profileUrl": url,
-            "lastDailyUpdate": DateTime.now(),
-            "lastWeeklyUpdate": DateTime.now(),
-            "lastMonthlyUpdate": DateTime.now(),
-            "courseDetails": [],
-            "threeMonthList": [],
-            "oneMonthList": [],
-            "oneWeekList": [],
-            "dailyVideoList": [],
-            "initDate": DateTime.now(),
-            "score": 0,
-            "dailyStreak": 0,
-            "lastActiveDate": null,
-            "rank": 0
-          }).then((value) {
-            setState(() {
-              isLoading = true;
-            });
-            moveToNextScreen(context, const OnBoardScreen());
-            showToast('Successfully Registered!');
-          });
-        }
+      final user = await AuthService().createUserWithEmailAndPassword(
+          _emailController.text, _passwordController.text);
+
+      if (user != null) {
+        await FirestoreService().addUser(user.uid, {
+          "name": _nameController.text,
+          "email": _emailController.text,
+          "academicYear": null,
+          "graduationYear": null,
+          "preferences": [],
+          "skills": [],
+          "profileUrl": url,
+          "lastDailyUpdate": DateTime.now(),
+          "lastWeeklyUpdate": DateTime.now(),
+          "lastMonthlyUpdate": DateTime.now(),
+          "courseDetails": [],
+          "threeMonthList": [],
+          "oneMonthList": [],
+          "oneWeekList": [],
+          "dailyVideoList": [],
+          "initDate": DateTime.now(),
+          "score": 0,
+          "dailyStreak": 0,
+          "lastActiveDate": null,
+          "rank": 0
+        });
+
+        setState(() {
+          isLoading = false;
+        });
+
+        moveToNextScreen(context, const OnBoardScreen());
+        showToast('Successfully Registered!');
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        isLoading = false;
       });
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          showToast("This email is already in use. Try logging in.");
+          break;
+        case 'invalid-email':
+          showToast("Invalid email format. Please enter a valid email.");
+          break;
+        case 'weak-password':
+          showToast("Password is too weak. Use at least 6 characters.");
+          break;
+        default:
+          showToast("Sign-up failed: ${e.message}");
+      }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      // EasyLoading.dismiss();
-      showToast("Login failed: $e");
+      showToast("An unexpected error occurred. Please try again.");
+      debugPrint("Error: $e");
     }
   }
 
@@ -169,6 +211,14 @@ class _SignupFormState extends State<SignupForm> {
         key: _formKey,
         child: Column(
           children: [
+            const Text(
+              'Sign Up',
+              style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F75BC)),
+            ),
+            const SizedBox(height: 30),
             CustomFormField(
               controller: _nameController,
               hintText: 'Name',
@@ -249,7 +299,7 @@ class _SignupFormState extends State<SignupForm> {
                   _login();
                   //EasyLoading.show();
                 } else if (_formKey.currentState!.validate()) {
-                  showToast("This is Center Short Toast");
+                  showToast("");
                 }
               },
               isLoading: isLoading,
