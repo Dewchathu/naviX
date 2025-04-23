@@ -19,7 +19,7 @@ class _HomeScrollState extends State<HomeScroll> {
   void initState() {
     super.initState();
     dailyVideoList = widget.user?.dailyVideoList ?? [];
-    weekTopic = (widget.user?.oneWeekList[now.weekday - 1])!;
+    weekTopic = (widget.user?.oneWeekList[now.weekday - 1]) ?? '';
   }
 
   @override
@@ -38,20 +38,22 @@ class _HomeScrollState extends State<HomeScroll> {
                   margin: const EdgeInsets.only(bottom: 15),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                      color: const Color(0xFF0F75BC),
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                    weekTopic,
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                    color: const Color(0xFF0F75BC),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                )
+                  child: Text(
+                    weekTopic.isNotEmpty ? weekTopic : 'No Topic',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
         Expanded(
-          // Properly constrain the ListView
           child: dailyVideoList.isNotEmpty
               ? ListView.builder(
                   itemCount: dailyVideoList.length,

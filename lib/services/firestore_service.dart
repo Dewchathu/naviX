@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+
 import '../widgets/info_messages.dart';
 import 'auth_service.dart';
 
@@ -9,6 +9,8 @@ class FirestoreService {
   // Method to add a user to Firestore
   Future<void> addUser(String userId, Map<String, dynamic> userInfoMap) async {
     try {
+      // Ensure learnerType is set for new users
+      userInfoMap['learnerType'] = userInfoMap['learnerType'] ?? 'slow';
       await _firestore.collection("User").doc(userId).set(userInfoMap);
       showToast('User added successfully');
     } catch (e) {
@@ -16,7 +18,7 @@ class FirestoreService {
     }
   }
 
-// Method to get current user information along with course details
+  // Method to get current user information along with course details
   Future<Map<String, dynamic>?> getCurrentUserInfo() async {
     try {
       String? userId = await getCurrentUserId();
@@ -25,7 +27,6 @@ class FirestoreService {
             await _firestore.collection('User').doc(userId).get();
 
         if (snapshot.exists) {
-          // Return all user information along with course details
           return snapshot.data();
         } else {
           showToast('User document not found');
@@ -64,7 +65,7 @@ class FirestoreService {
     return await AuthService().getCurrentUserId();
   }
 
-//get all user info
+  // Get all user info
   Stream<List<Map<String, dynamic>>> fetchAllUsers() {
     return FirebaseFirestore.instance
         .collection('User')
@@ -76,23 +77,23 @@ class FirestoreService {
           "name": doc["name"],
           "score": doc["score"],
           "dailyStreak": doc["dailyStreak"],
-          "profileUrl": doc["profileUrl"]
+          "profileUrl": doc["profileUrl"],
+          "learnerType": doc["learnerType"] ?? 'slow',
         };
       }).toList();
     });
   }
 
-//update user rank
+  // Update user rank
   Future<void> updateUserRank(List<Map<String, dynamic>> users) async {
     for (int i = 0; i < users.length; i++) {
       final user = users[i];
-        // Update the user's rank in Firebase
-        await FirebaseFirestore.instance
-            .collection('User')
-            .doc(user['id'])
-            .update({
-          'rank': i + 1,
-        });
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(user['id'])
+          .update({
+        'rank': i + 1,
+      });
     }
   }
 }

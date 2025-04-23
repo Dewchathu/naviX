@@ -1,10 +1,10 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:loading_indicator/loading_indicator.dart';
+import 'package:http/http.dart' as http;
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/video_player_screen.dart';
-import 'package:http/http.dart' as http;
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoTile extends StatefulWidget {
@@ -96,8 +96,8 @@ class _VideoTileState extends State<VideoTile> {
             VideoPlayerScreen(
               videoUrl: widget.videoUrl,
               title: videoTitle,
-              videoScript: videoScript,
               score: widget.score,
+              videoScript: '',
             ),
           );
         }
@@ -105,72 +105,72 @@ class _VideoTileState extends State<VideoTile> {
       child: isLoading
           ? Container()
           : Padding(
-        padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-        child: Container(
-          width: double.infinity,
-          height: 150,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white,
-            boxShadow: const [
-              BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                  offset: Offset(3, 3)),
-            ],
-          ),
-          padding: const EdgeInsets.only(left: 10),
-          child: Row(
-            children: [
-              Container(
-                height: 130,
-                width: 130,
+              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: Container(
+                width: double.infinity,
+                height: 150,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                   color: Colors.white,
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                        offset: Offset(3, 3)),
+                  ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    videoThumbnailUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                padding: const EdgeInsets.only(left: 10),
+                child: Row(
                   children: [
-                    Text(
-                      videoTitle,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F75BC),
+                    Container(
+                      height: 130,
+                      width: 130,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          videoThumbnailUrl,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      videoAuthor,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            videoTitle,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F75BC),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            videoAuthor,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ],
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

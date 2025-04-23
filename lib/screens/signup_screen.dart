@@ -166,7 +166,8 @@ class _SignupFormState extends State<SignupForm> {
           "score": 0,
           "dailyStreak": 0,
           "lastActiveDate": null,
-          "rank": 0
+          "rank": 0,
+          "learnerType": 'slow'
         });
 
         setState(() {

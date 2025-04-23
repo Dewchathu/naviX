@@ -25,7 +25,7 @@ dependencies:
   image_picker: ^1.1.2
   firebase_storage: ^12.3.1
   provider: ^6.1.2
-  flutter_gemini: ^2.0.5
+  flutter_gemini: ^3.0.0
   flutter_dotenv: ^5.1.0
   youtube_player_flutter: ^9.1.1
   flutter_local_notifications: ^17.2.3
@@ -36,6 +36,7 @@ dependencies:
   permission_handler: ^11.3.1
   flutter_svg: ^2.0.17
   flutter_typeahead: ^5.2.0
+  youtube_caption_scraper: ^0.2.1
 
 
 dev_dependencies:

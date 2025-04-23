@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:http/http.dart' as http;
 
 class YouTubeService {
+  final Gemini gemini = Gemini.instance;
+
   Future<int> fetchVideoDuration(String videoId, String apiKey) async {
     final url = Uri.parse(
         'https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=$videoId&key=$apiKey');
@@ -13,12 +16,11 @@ class YouTubeService {
       final duration = data['items'][0]['contentDetails']['duration'];
       return parseDuration(duration);
     } else {
-      throw Exception('Failed to load video data');
+      throw Exception('Failed to load video data: ${response.statusCode}');
     }
   }
 
   int parseDuration(String iso8601Duration) {
-    // Example format: "PT1H2M30S" (1 hour, 2 minutes, and 30 seconds)
     final regex = RegExp(r'PT(\d+H)?(\d+M)?(\d+S)?');
     final match = regex.firstMatch(iso8601Duration);
 
@@ -41,7 +43,6 @@ class YouTubeService {
       }
     }
 
-    // Convert everything to seconds
     return (hours * 3600) + (minutes * 60) + seconds;
   }
 }

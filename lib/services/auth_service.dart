@@ -5,8 +5,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:navix/screens/home.dart';
 
 import '../screens/onboard_screen.dart';
-import '../widgets/info_messages.dart'; // Assuming you have this widget
-import 'firestore_service.dart'; // Firestore service to handle Firestore operations
+import '../widgets/info_messages.dart';
+import 'firestore_service.dart';
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
@@ -119,7 +119,8 @@ class AuthService {
               "score": 0,
               "dailyStreak": 0,
               "lastActiveDate": null,
-              "rank": 0
+              "rank": 0,
+              "learnerType": 'slow'
             };
 
             // Add user details to Firestore for the first time

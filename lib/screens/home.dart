@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:navix/actions/move_to_next_sceen.dart';
 import 'package:navix/screens/profile_screen.dart';
@@ -34,7 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUserInfo();
   }
-
 
   Future<void> _loadUserInfo() async {
     try {
@@ -72,8 +70,9 @@ class _HomeScreenState extends State<HomeScreen> {
             oneWeekList: List<String>.from(userInfo["oneWeekList"] ?? []),
             dailyStreak: userInfo["dailyStreak"] ?? 0,
             score: userInfo["score"] ?? 0,
-            lastActiveDate: DateTime.parse(userInfo["initDate"].toDate().toString()),
-
+            lastActiveDate:
+                DateTime.parse(userInfo["initDate"].toDate().toString()),
+            learnerType: userInfo["learnerType"] ?? 'slow',
           );
         });
       }
@@ -81,8 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint("Error fetching user info: $e");
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: DefaultTabController(
         length: 4,
-        initialIndex:
-            1,
+        initialIndex: 1,
         child: Scaffold(
           backgroundColor: const Color(0xFFE0F1FF),
           appBar: AppBar(
@@ -129,7 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ?.hasAbsolutePath ==
                                     true
                             ? NetworkImage(profileProvider.profilePictureUrl)
-                            : const AssetImage('assets/images/profile_image.png')
+                            : const AssetImage(
+                                    'assets/images/profile_image.png')
                                 as ImageProvider,
                       );
                     },
@@ -141,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
           body: TabBarView(
             children: <Widget>[
               IntroScroll(user: user),
-              user != null? HomeScroll(user: user) : const SizedBox.shrink(),
+              user != null ? HomeScroll(user: user) : const SizedBox.shrink(),
               Calendar(user: user),
               Leaderboard()
             ],
@@ -153,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const TabBar(
               indicatorColor: Colors.white,
               labelColor: Colors.white,
-              unselectedLabelColor:Color(0xFF97D2FF),
+              unselectedLabelColor: Color(0xFF97D2FF),
               tabs: <Widget>[
                 Tab(
                   icon: Icon(Icons.list_alt_rounded),
@@ -170,7 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
         ),
       ),
     );
