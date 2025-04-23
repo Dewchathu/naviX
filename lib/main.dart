@@ -10,27 +10,29 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  String apiKey = dotenv.env['API_KEY'] ?? '';
-  Gemini.init(apiKey: apiKey, enableDebugging: true);
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load(fileName: ".env");
+    String apiKey = dotenv.env['API_KEY'] ?? '';
+    Gemini.init(apiKey: apiKey, enableDebugging: true);
 
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    // Initialize Firebase
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize Notification Service
-  final NotificationService notificationService = NotificationService();
-  await notificationService.init();
+    // Initialize Notification Service
+    final NotificationService notificationService = NotificationService();
+    await notificationService.init();
 
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ProfileProvider()),
-      ChangeNotifierProvider(
-        create: (_) => StreakProvider(),
-      )
-    ],
-    child: const MyApp(),
-  ));
+    runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => StreakProvider()),
+      ],
+      child: const MyApp(),
+    ));
+  } catch (e) {
+    print('Error during app initialization: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {

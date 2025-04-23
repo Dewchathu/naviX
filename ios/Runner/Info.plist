@@ -45,5 +45,30 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+    <string>This app requires access to the local network for debugging and notifications.</string>
+    <key>NSBonjourServices</key>
+    <array>
+      <string>_dartobservatory._tcp</string>
+    </array>
+    <key>NSCameraUsageDescription</key>
+    <string>We need camera access to allow profile image uploads.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your photo library for uploading images.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Used for Bluetooth device access (if relevant).</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.765587323725-ef9tm16spjgp0q678vb18c0u6v815phi</string>
+            </array>
+        </dict>
+    </array>
+
+
 </dict>
 </plist>

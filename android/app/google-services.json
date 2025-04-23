@@ -35,8 +35,15 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "765587323725-06bso64aqdn7pl90j16h6id2otoo5rei.apps.googleusercontent.com",
+              "client_id": "102534358845730185573",
               "client_type": 3
+            },
+            {
+              "client_id": "765587323725-ef9tm16spjgp0q678vb18c0u6v815phi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dew.navix"
+              }
             }
           ]
         }

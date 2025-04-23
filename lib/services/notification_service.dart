@@ -1,5 +1,5 @@
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -8,20 +8,33 @@ class NotificationService {
   FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
+    // Android initialization settings
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
+    // iOS/macOS initialization settings
+    const DarwinInitializationSettings initializationSettingsDarwin =
+    DarwinInitializationSettings(
+      requestAlertPermission: true, // Request permission for alerts
+      requestBadgePermission: true, // Request permission for badges
+      requestSoundPermission: true, // Request permission for sounds
     );
 
+    // Combine platform-specific settings
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsDarwin,
+    );
+
+    // Initialize timezone data for scheduled notifications
     tz.initializeTimeZones();
 
+    // Initialize the plugin
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
     );
 
-    // Request notification permissions for Android 13+
+    // Request notification permissions for Android 13+ and iOS
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
     }
@@ -45,6 +58,11 @@ class NotificationService {
           channelDescription: 'dew_channel_description',
           importance: Importance.max,
           priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true, // Show alert
+          presentBadge: true, // Update badge
+          presentSound: true, // Play sound
         ),
       ),
       androidAllowWhileIdle: true,

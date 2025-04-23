@@ -23,10 +23,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -66,4 +63,16 @@ class DefaultFirebaseOptions {
     projectId: 'navix-dew',
     storageBucket: 'navix-dew.appspot.com',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCs-fyzkmPEDlo_6prJIYV0QMqfHG1qSSA',
+    appId: '1:765587323725:ios:4470c29fb4e25ba3609504',
+    messagingSenderId: '765587323725',
+    projectId: 'navix-dew',
+    storageBucket: 'navix-dew.appspot.com',
+    androidClientId: '765587323725-3h4305q1m6ksbmspg79g2aj28jjddhjv.apps.googleusercontent.com',
+    iosClientId: '765587323725-ef9tm16spjgp0q678vb18c0u6v815phi.apps.googleusercontent.com',
+    iosBundleId: 'com.dew.navix',
+  );
+
 }
