@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 class CustomButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // Synchronous callback
+  final Future<void> Function()? onPressedAsync; // Asynchronous callback
   final String text;
   final Color? buttonColor;
   final bool isLoading;
 
   const CustomButton({
-    required this.onPressed,
+    Key? key,
+    this.onPressed,
+    this.onPressedAsync,
     required this.text,
     this.buttonColor,
     this.isLoading = false,
-  });
+  }) : assert(
+  onPressed == null || onPressedAsync == null,
+  'Cannot provide both onPressed and onPressedAsync',
+  ),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,20 @@ class CustomButton extends StatelessWidget {
     return Container(
       width: width,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading
+            ? null
+            : () {
+          if (onPressed != null) {
+            onPressed!(); // Call synchronous callback
+          } else if (onPressedAsync != null) {
+            // Call async callback and handle errors
+            onPressedAsync!().catchError((e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: $e')),
+              );
+            });
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: buttonColor ?? const Color(0xFF0F75BC),
           foregroundColor: Colors.white,
@@ -47,6 +67,5 @@ class CustomButton extends StatelessWidget {
             : Text(text),
       ),
     );
-
   }
 }

@@ -146,6 +146,7 @@ class _IntroScrollState extends State<IntroScroll> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               color: const Color(0xFFE3F2FD),
@@ -156,28 +157,41 @@ class _IntroScrollState extends State<IntroScroll> {
                                 size: 24.0,
                               ),
                             ),
-                            Text(
-                              course["code"] ?? "No Code",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            SizedBox(width: 50),
-                            Text(
-                              course["name"] ?? "No Name",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                course["code"] ?? "No Code",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               ),
                             ),
                           ],
                         ),
+
+                        Row(
+                          children: [
+                            const SizedBox(width: 50),
+                            Expanded(
+                              child: Text(
+                                course["name"] ?? "No Name",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+
 
                       ],
                     );
